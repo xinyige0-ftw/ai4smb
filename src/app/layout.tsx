@@ -1,6 +1,6 @@
-import Script from "next/script";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import AnonTracker from "@/components/AnonTracker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,32 +28,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Script id="ai4smb-anon" strategy="afterInteractive">
-          {`
-            (function() {
-              try {
-                const key = "ai4smb_anon_id";
-                let id = localStorage.getItem(key);
-                if (!id) {
-                  id = crypto.randomUUID();
-                  localStorage.setItem(key, id);
-                }
-                fetch("/api/event", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    anonId: id,
-                    event: "pageview",
-                    path: window.location.pathname
-                  })
-                }).catch(() => {});
-              } catch (e) {}
-            })();
-          `}
-        </Script>
+        <AnonTracker />
         {children}
       </body>
     </html>
   );
 }
-
