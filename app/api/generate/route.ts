@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { buildPrompt, SYSTEM_PROMPT, type GenerateInput } from "@/lib/prompts";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetAt: number }>();
 const MAX_PER_HOUR = 10;
@@ -35,18 +35,18 @@ export async function POST(req: Request) {
     }
 
     const prompt = buildPrompt(input);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-lite",
-      generationConfig: {
-        temperature: 0.9,
-        maxOutputTokens: 2048,
-        responseMimeType: "application/json",
-      },
-      systemInstruction: SYSTEM_PROMPT,
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.9,
+      max_tokens: 2048,
+      response_format: { type: "json_object" },
     });
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = completion.choices[0]?.message?.content || "{}";
     const campaign = JSON.parse(text);
 
     console.log("GENERATE:", {
@@ -63,11 +63,7 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Generate error:", message);
     return Response.json(
-      {
-        error: "Something went wrong generating your campaign. Please try again.",
-        debug: message,
-        hasKey: !!process.env.GEMINI_API_KEY,
-      },
+      { error: "Something went wrong generating your campaign. Please try again.", debug: message },
       { status: 500 }
     );
   }
