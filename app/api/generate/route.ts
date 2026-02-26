@@ -60,9 +60,14 @@ export async function POST(req: Request) {
 
     return Response.json({ campaign });
   } catch (err) {
-    console.error("Generate error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Generate error:", message);
     return Response.json(
-      { error: "Something went wrong generating your campaign. Please try again." },
+      {
+        error: "Something went wrong generating your campaign. Please try again.",
+        debug: message,
+        hasKey: !!process.env.GEMINI_API_KEY,
+      },
       { status: 500 }
     );
   }
