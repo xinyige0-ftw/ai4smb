@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import ChannelCard from "./ChannelCard";
+import { formatCampaignReport, downloadText, copyText } from "@/lib/export";
 
 interface CampaignData {
   strategy: string;
@@ -26,6 +28,18 @@ export default function CampaignResults({
   onAdjust,
   loading,
 }: CampaignResultsProps) {
+  const [copied, setCopied] = useState(false);
+
+  function handleDownload() {
+    downloadText(formatCampaignReport(campaign), "marketing-campaign.txt");
+  }
+
+  async function handleCopy() {
+    await copyText(formatCampaignReport(campaign));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
@@ -74,10 +88,22 @@ export default function CampaignResults({
           )}
         </button>
         <button
+          onClick={handleDownload}
+          className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          📥 Download
+        </button>
+        <button
+          onClick={handleCopy}
+          className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          {copied ? "✓ Copied!" : "📋 Copy all"}
+        </button>
+        <button
           onClick={onAdjust}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
-          ✏️ Adjust inputs
+          ✏️ Adjust
         </button>
         <button
           onClick={onStartOver}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatSegmentReport, downloadText, copyText } from "@/lib/export";
 
 interface Segment {
   name: string;
@@ -109,6 +110,20 @@ export default function SegmentResults({
   onReanalyze,
   loading,
 }: SegmentResultsProps) {
+  const [copied, setCopied] = useState(false);
+
+  function handleDownload() {
+    const text = formatSegmentReport(result, metaLabel);
+    downloadText(text, "customer-segments.txt");
+  }
+
+  async function handleCopy() {
+    const text = formatSegmentReport(result, metaLabel);
+    await copyText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
   const metaText =
     metaLabel ||
     (meta.rowCount > 0
@@ -213,8 +228,20 @@ export default function SegmentResults({
           )}
         </button>
         <button
-          onClick={onStartOver}
+          onClick={handleDownload}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          📥 Download
+        </button>
+        <button
+          onClick={handleCopy}
+          className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          {copied ? "✓ Copied!" : "📋 Copy all"}
+        </button>
+        <button
+          onClick={onStartOver}
+          className="rounded-lg px-5 py-3 text-sm font-medium text-zinc-400 transition-all hover:text-zinc-600 dark:hover:text-zinc-300"
         >
           Try another method
         </button>
