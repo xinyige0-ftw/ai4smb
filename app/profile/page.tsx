@@ -72,6 +72,7 @@ export default function ProfilePage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ preferences: next }),
         });
+        try { localStorage.setItem("ai4smb_prefs", JSON.stringify(next)); } catch {}
       } finally {
         setSaving(false);
       }
@@ -103,7 +104,10 @@ export default function ProfilePage() {
       })
       .then((data: ProfileData) => {
         setProfile(data);
-        if (data.preferences) setPrefs(data.preferences);
+        if (data.preferences) {
+          setPrefs(data.preferences);
+          try { localStorage.setItem("ai4smb_prefs", JSON.stringify(data.preferences)); } catch {}
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import CampaignResults from "./CampaignResults";
 
 interface Message {
@@ -22,26 +23,16 @@ interface CampaignChatProps {
   onBack: () => void;
 }
 
-const INITIAL_GREETING: Message = {
-  role: "assistant",
-  content:
-    "Hey! Tell me about your business and what you want to achieve — I'll build you a campaign.\n\nExample: \"I run a coffee shop and want more morning customers.\"",
-};
-
-const STARTER_CHIPS = [
-  "I run a coffee shop",
-  "I'm a freelance designer",
-  "I own a restaurant",
-];
-
-const REFINEMENT_CHIPS = [
-  "Make it shorter",
-  "Different tone",
-  "Add a seasonal hook",
-];
-
 export default function CampaignChat({ onBack }: CampaignChatProps) {
-  const [messages, setMessages] = useState<Message[]>([INITIAL_GREETING]);
+  const t = useTranslations("chat");
+  const locale = useLocale();
+
+  const greeting: Message = { role: "assistant", content: t("greeting") };
+  const starterChips = [t("starterChip1"), t("starterChip2"), t("starterChip3")];
+  const midChips = [t("midChip1"), t("midChip2"), t("midChip3")];
+  const refinementChips = [t("refinementChip1"), t("refinementChip2"), t("refinementChip3")];
+
+  const [messages, setMessages] = useState<Message[]>([greeting]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -67,9 +58,16 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
     if (ttsAvailable) {
       const pickVoice = () => {
         const voices = window.speechSynthesis.getVoices();
-        const preferred = voices.find((v) =>
-          /samantha|google|natural|enhanced/i.test(v.name)
-        );
+        let preferred: SpeechSynthesisVoice | undefined;
+        if (locale.startsWith("zh")) {
+          preferred = voices.find(
+            (v) => /chinese|mandarin|zh/i.test(v.name) || v.lang.startsWith("zh")
+          );
+        } else {
+          preferred = voices.find((v) =>
+            /samantha|google|natural|enhanced/i.test(v.name)
+          );
+        }
         setPreferredVoice(preferred || voices[0] || null);
       };
       pickVoice();
@@ -159,7 +157,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
+        { role: "assistant", content: t("error") },
       ]);
     } finally {
       setLoading(false);
@@ -181,7 +179,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = document.documentElement.lang || "en-US";
+    recognition.lang = locale.startsWith("zh") ? "zh-CN" : "en-US";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
@@ -238,10 +236,10 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
           onClick={onBack}
           className="text-sm text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
         >
-          ← Back
+          {t("back")}
         </button>
         <h1 className="text-base font-bold text-zinc-900 dark:text-zinc-50 sm:text-lg">
-          AI Strategist
+          {t("title")}
         </h1>
         <div className="flex items-center gap-1">
           {hasTTS && (
@@ -255,7 +253,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
                   ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
                   : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
               }`}
-              title={ttsEnabled ? "Mute AI voice" : "Enable AI voice"}
+              title={ttsEnabled ? t("muteAI") : t("enableAI")}
             >
               {ttsEnabled ? "🔊" : "🔇"}
             </button>
@@ -287,7 +285,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
                 <div className="whitespace-pre-wrap">{clean}</div>
                 {hasCampaignJson && (
                   <p className="mt-2 text-xs font-medium opacity-70">
-                    ↓ Campaign ready below
+                    {t("campaignReady")}
                   </p>
                 )}
               </div>
@@ -315,7 +313,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
             onRegenerate={() => sendMessage("Regenerate the entire campaign")}
             onStartOver={() => {
               setCampaign(null);
-              setMessages([INITIAL_GREETING]);
+              setMessages([greeting]);
             }}
             onAdjust={() => inputRef.current?.focus()}
             loading={loading}
@@ -326,7 +324,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
       {/* Suggestion chips */}
       {!loading && (
         <div className="flex gap-2 overflow-x-auto pb-2 pt-1">
-          {(hasGenerated ? REFINEMENT_CHIPS : messages.length <= 1 ? STARTER_CHIPS : []).map((chip) => (
+          {(hasGenerated ? refinementChips : messages.length <= 1 ? starterChips : midChips).map((chip) => (
             <button
               key={chip}
               onClick={() => sendMessage(chip)}
@@ -347,7 +345,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
               <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
             </span>
             <span className="text-xs font-medium text-red-600 dark:text-red-400">
-              Listening... tap mic to stop
+              {t("listening")}
             </span>
           </div>
         )}
@@ -358,7 +356,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? "Speak now..." : "Type your message..."}
+              placeholder={isListening ? t("speakNow") : t("placeholder")}
               rows={1}
               className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:px-4 sm:py-3"
               style={{ maxHeight: "100px" }}
@@ -380,7 +378,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
                   ? "bg-red-500 text-white ring-2 ring-red-300 dark:ring-red-700"
                   : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
               }`}
-              title={isListening ? "Stop listening" : "Voice input"}
+              title={isListening ? t("stopListening") : t("voiceInput")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import ChannelCard from "./ChannelCard";
 import PostAgent from "./PostAgent";
 import { formatCampaignReport, downloadText, copyText } from "@/lib/export";
@@ -32,6 +33,8 @@ export default function CampaignResults({
   onAdjust,
   loading,
 }: CampaignResultsProps) {
+  const t = useTranslations("generate");
+  const tc = useTranslations("common");
   const [copied, setCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -56,16 +59,16 @@ export default function CampaignResults({
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-        Your Campaign
+        {t("resultTitle")}
       </h1>
       <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-        Here&apos;s your personalized marketing plan
+        {t("resultSubtitle")}
       </p>
 
       {/* Strategy brief */}
       <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
-          Strategy
+          {t("strategy")}
         </h2>
         <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-100">
           {campaign.strategy}
@@ -88,7 +91,7 @@ export default function CampaignResults({
       {campaign.thisWeek && campaign.thisWeek.length > 0 && (
         <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800 dark:bg-green-950">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
-            This Week&apos;s Action Plan
+            {t("thisWeekTitle")}
           </h2>
           <div className="space-y-3">
             {campaign.thisWeek.map((item, i) => (
@@ -116,43 +119,43 @@ export default function CampaignResults({
           {loading ? (
             <>
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Regenerating...
+              {t("regenerating")}
             </>
           ) : (
-            "🔄 Regenerate all"
+            `🔄 ${t("regenerate")}`
           )}
         </button>
         <button
           onClick={handleDownload}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
-          📥 Download
+          📥 {tc("download")}
         </button>
         <button
           onClick={handleCopy}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
-          {copied ? "✓ Copied!" : "📋 Copy all"}
+          {copied ? `✓ ${tc("copied")}` : `📋 ${tc("copy")}`}
         </button>
         {campaignId && (
           <button
             onClick={handleShare}
             className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            {shareCopied ? "✓ Link copied!" : "🔗 Share"}
+            {shareCopied ? `✓ ${t("linkCopied")}` : `🔗 ${t("share")}`}
           </button>
         )}
         <button
           onClick={onAdjust}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 transition-all hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
-          ✏️ Adjust
+          ✏️ {t("adjust")}
         </button>
         <button
           onClick={onStartOver}
           className="rounded-lg px-5 py-3 text-sm font-medium text-zinc-400 transition-all hover:text-zinc-600 dark:hover:text-zinc-300"
         >
-          Start over
+          {tc("startOver")}
         </button>
       </div>
 

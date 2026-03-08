@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
 
@@ -15,6 +16,9 @@ interface SegmentData {
 }
 
 export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
+  const t = useTranslations("benchmark");
+  const tb = useTranslations("businesses");
+  const tc = useTranslations("common");
   const [businessType, setBusinessType] = useState("");
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,11 +46,11 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Something went wrong."); return; }
+      if (!res.ok) { setError(data.error || tc("errorGeneric")); return; }
       setResult(data.result);
       setResultId(data.id || null);
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,7 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
         result={result}
         resultId={resultId}
         meta={{ rowCount: 0, columnCount: 0 }}
-        metaLabel="Based on industry benchmarks for this business type"
+        metaLabel={t("metaLabel")}
         onStartOver={onBack}
         onReanalyze={handleAnalyze}
         loading={loading}
@@ -69,13 +73,13 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-        Industry Benchmarks
+        {t("title")}
       </h1>
       <p className="mb-2 text-center text-zinc-500 dark:text-zinc-400">
-        Pick your business type and get typical customer segments instantly
+        {t("subtitle")}
       </p>
       <p className="mb-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
-        Based on industry patterns, not your specific data
+        {t("disclaimer")}
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -86,14 +90,14 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
             className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition-all active:scale-95 ${businessType === bt.id ? "border-blue-600 bg-blue-50 dark:bg-blue-950" : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900"}`}
           >
             <span className="text-2xl">{bt.icon}</span>
-            <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{bt.label}</span>
+            <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{tb(bt.id)}</span>
           </button>
         ))}
       </div>
 
       <input
         type="text"
-        placeholder="City / region (optional, e.g. Austin TX)"
+        placeholder={t("locationPlaceholder")}
         value={location}
         onChange={(e) => setLocation(e.target.value)}
         className="mt-5 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
@@ -110,7 +114,7 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
         >
-          Back
+          {tc("back")}
         </button>
         <button
           onClick={handleAnalyze}
@@ -118,8 +122,8 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
         >
           {loading ? (
-            <><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />Generating benchmarks...</>
-          ) : "Show industry segments"}
+            <><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t("generating")}</>
+          ) : t("showSegments")}
         </button>
       </div>
     </div>

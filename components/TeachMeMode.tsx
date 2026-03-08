@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TEACH_ME_QUESTIONS, type TeachMeQA } from "@/lib/insight-prompts";
 import SegmentResults from "./SegmentResults";
+import VoiceInput from "./VoiceInput";
 
 interface SegmentData {
   summary: string;
@@ -137,20 +138,23 @@ export default function TeachMeMode({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Answer textarea */}
-        <textarea
-          key={currentQ}
-          value={currentAnswer}
-          onChange={(e) => handleAnswer(e.target.value)}
-          placeholder="Type your answer here..."
-          rows={4}
-          autoFocus
-          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-relaxed text-zinc-900 placeholder-zinc-400 focus:border-blue-400 focus:bg-white focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canProceed) {
-              handleNext();
-            }
-          }}
-        />
+        <div className="flex items-start gap-1.5">
+          <textarea
+            key={currentQ}
+            value={currentAnswer}
+            onChange={(e) => handleAnswer(e.target.value)}
+            placeholder="Type your answer here..."
+            rows={4}
+            autoFocus
+            className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-relaxed text-zinc-900 placeholder-zinc-400 focus:border-blue-400 focus:bg-white focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canProceed) {
+                handleNext();
+              }
+            }}
+          />
+          <VoiceInput onTranscript={(t) => handleAnswer(currentAnswer + (currentAnswer ? " " : "") + t)} className="mt-1" />
+        </div>
         <p className="mt-1 text-right text-xs text-zinc-400">
           {canProceed ? "⌘/Ctrl+Enter to continue" : ""}
         </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export interface ReviewSubmitData {
   rating: number;
@@ -39,18 +40,6 @@ function StarIcon({ filled }: { filled: boolean }) {
   );
 }
 
-const TOOL_LABELS: Record<string, string> = {
-  segment_interview: "Customer Interview",
-  segment_benchmark: "Industry Benchmarks",
-  segment_csv: "CSV Upload",
-  segment_reviews: "Review Analysis",
-  segment_pos: "POS Data",
-  segment_social: "Social Analysis",
-  segment_teachme: "Guided Analysis",
-  campaign_form: "Campaign Generator",
-  campaign_chat: "Campaign Chat",
-};
-
 export default function ReviewPrompt({
   onClose,
   onSubmit,
@@ -60,6 +49,7 @@ export default function ReviewPrompt({
   segmentsCount = 0,
   userEmail = "",
 }: ReviewPromptProps) {
+  const t = useTranslations("review");
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [npsScore, setNpsScore] = useState<number | null>(null);
@@ -92,9 +82,9 @@ export default function ReviewPrompt({
 
   function getNpsLabel(score: number | null): string {
     if (score === null) return "";
-    if (score <= 6) return "Detractor";
-    if (score <= 8) return "Passive";
-    return "Promoter";
+    if (score <= 6) return t("detractor");
+    if (score <= 8) return t("passive");
+    return t("promoter");
   }
 
   function getNpsColor(score: number | null): string {
@@ -124,14 +114,14 @@ export default function ReviewPrompt({
         </button>
 
         <h2 className="mb-5 text-xl font-bold text-zinc-900 dark:text-zinc-50">
-          How was your experience?
+          {t("promptTitle")}
         </h2>
 
         {/* Usage context */}
         {(campaignsCount > 0 || segmentsCount > 0 || toolsUsed.length > 0) && (
           <div className="mb-5 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-              Your session
+              {t("sessionLabel")}
             </p>
             <div className="flex flex-wrap gap-2">
               {businessType && (
@@ -141,12 +131,12 @@ export default function ReviewPrompt({
               )}
               {campaignsCount > 0 && (
                 <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
-                  {campaignsCount} campaign{campaignsCount !== 1 ? "s" : ""}
+                  {t("campaignCount", { count: campaignsCount })}
                 </span>
               )}
               {segmentsCount > 0 && (
                 <span className="rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                  {segmentsCount} segment{segmentsCount !== 1 ? "s" : ""}
+                  {t("segmentCount", { count: segmentsCount })}
                 </span>
               )}
               {toolsUsed.map((tool) => (
@@ -154,7 +144,7 @@ export default function ReviewPrompt({
                   key={tool}
                   className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
                 >
-                  {TOOL_LABELS[tool] || tool}
+                  {t.has(`tool_${tool}`) ? t(`tool_${tool}`) : tool}
                 </span>
               ))}
             </div>
@@ -183,7 +173,7 @@ export default function ReviewPrompt({
         {/* NPS question */}
         <div className="mb-5">
           <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            How likely are you to recommend AI4SMB to a friend or colleague?
+            {t("npsQuestion")}
           </label>
           <div className="flex gap-1">
             {Array.from({ length: 11 }, (_, i) => i).map((score) => {
@@ -213,8 +203,8 @@ export default function ReviewPrompt({
             })}
           </div>
           <div className="mt-1.5 flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
-            <span>Not at all likely</span>
-            <span>Extremely likely</span>
+            <span>{t("npsLow")}</span>
+            <span>{t("npsHigh")}</span>
           </div>
           {npsScore !== null && (
             <p className={`mt-1 text-center text-xs font-medium ${getNpsColor(npsScore)}`}>
@@ -226,14 +216,14 @@ export default function ReviewPrompt({
         {/* Review text */}
         <div className="mb-4">
           <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Tell us what you think (optional)
+            {t("textPlaceholder")}
           </label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, maxChars))}
             rows={3}
             className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-            placeholder="What did you find most useful?"
+            placeholder={t("textInputPlaceholder")}
           />
           <p className="mt-1 text-right text-xs text-zinc-400 dark:text-zinc-500">
             {text.length}/{maxChars}
@@ -243,7 +233,7 @@ export default function ReviewPrompt({
         {/* Identity toggle */}
         <div className="mb-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
           <p className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            How would you like to appear?
+            {t("identityLabel")}
           </p>
           <div className="flex gap-2">
             <button
@@ -254,7 +244,7 @@ export default function ReviewPrompt({
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
             >
-              Anonymous
+              {t("anonymous")}
             </button>
             <button
               onClick={() => setIsAnonymous(false)}
@@ -264,7 +254,7 @@ export default function ReviewPrompt({
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
             >
-              Show my name
+              {t("showName")}
             </button>
           </div>
         </div>
@@ -274,26 +264,26 @@ export default function ReviewPrompt({
           <div className="mb-4 space-y-3">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Your name or business name
+                {t("nameLabel")}
               </label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-                placeholder="e.g. Sarah's Bakery"
+                placeholder={t("namePlaceholder")}
               />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Email (optional)
+                {t("emailLabel")}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
               />
             </div>
           </div>
@@ -309,7 +299,7 @@ export default function ReviewPrompt({
               className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
             />
             <span className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              I agree that my review {!isAnonymous ? "and name " : ""}may be displayed publicly on the AI4SMB website.
+              {!isAnonymous ? t("consentDisplayNamed") : t("consentDisplay")}
             </span>
           </label>
           {!isAnonymous && email && (
@@ -321,7 +311,7 @@ export default function ReviewPrompt({
                 className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
               />
               <span className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                AI4SMB may contact me for follow-up or a featured testimonial.
+                {t("consentContact")}
               </span>
             </label>
           )}
@@ -332,11 +322,11 @@ export default function ReviewPrompt({
           onClick={handleSubmit}
           className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Submit review
+          {t("submit")}
         </button>
 
         <p className="mt-3 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          Your session data is never shared without your consent.
+          {t("privacyNote")}
         </p>
       </div>
     </div>

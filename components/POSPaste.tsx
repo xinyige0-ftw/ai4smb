@@ -4,6 +4,7 @@ import { useState } from "react";
 import Papa from "papaparse";
 import { summarizeCsv, stripPiiFromSummary } from "@/lib/segment-prompts";
 import SegmentResults from "./SegmentResults";
+import VoiceInput from "./VoiceInput";
 
 interface SegmentData {
   summary: string;
@@ -109,18 +110,21 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          <textarea
-            placeholder="Paste your transaction data here (with headers in the first row):
+          <div className="flex items-start gap-1.5">
+            <textarea
+              placeholder="Paste your transaction data here (with headers in the first row):
 
 Date	Amount	Item	Customer Type
 2026-02-01	$45.00	Coffee + Pastry	Regular
 2026-02-01	$12.50	Latte	New
 2026-02-02	$89.00	Catering Order	Business"
-            value={pastedText}
-            onChange={(e) => setPastedText(e.target.value)}
-            rows={10}
-            className="w-full rounded-xl border border-zinc-300 px-4 py-3 font-mono text-xs leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-          />
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              rows={10}
+              className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 font-mono text-xs leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            />
+            <VoiceInput onTranscript={(t) => setPastedText((v) => v + (v ? " " : "") + t)} className="mt-1" />
+          </div>
 
           {error && (
             <div className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
 
 interface SignInModalProps {
@@ -8,6 +9,7 @@ interface SignInModalProps {
 }
 
 export default function SignInModal({ onClose }: SignInModalProps) {
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -65,9 +67,9 @@ export default function SignInModal({ onClose }: SignInModalProps) {
           <>
             <div className="mb-6 text-center">
               <div className="mb-2 text-3xl">🔐</div>
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Save your work</h2>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{t("saveWork")}</h2>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Sign in to sync your history across devices
+                {t("syncPrompt")}
               </p>
             </div>
 
@@ -82,7 +84,7 @@ export default function SignInModal({ onClose }: SignInModalProps) {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {t("continueWithGoogle")}
             </button>
 
             <div className="relative mb-4">
@@ -90,14 +92,14 @@ export default function SignInModal({ onClose }: SignInModalProps) {
                 <div className="w-full border-t border-zinc-200 dark:border-zinc-700" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-zinc-400 dark:bg-zinc-900">or use your email</span>
+                <span className="bg-white px-3 text-zinc-400 dark:bg-zinc-900">{t("orEmail")}</span>
               </div>
             </div>
 
             {/* Magic Link */}
             <input
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleMagicLink()}
@@ -108,7 +110,7 @@ export default function SignInModal({ onClose }: SignInModalProps) {
               disabled={!email.trim() || loading}
               className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
             >
-              {loading ? "Sending..." : "Send magic link"}
+              {loading ? t("sending") : t("sendMagicLink")}
             </button>
 
             {error && (
@@ -116,21 +118,21 @@ export default function SignInModal({ onClose }: SignInModalProps) {
             )}
 
             <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
-              No password needed · Your data stays private
+              {t("noPassword")}
             </p>
           </>
         ) : (
           <div className="text-center">
             <div className="mb-4 text-4xl">📬</div>
-            <h2 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-50">Check your inbox</h2>
+            <h2 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-50">{t("checkInbox")}</h2>
             <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-              We sent a magic link to <strong>{email}</strong>. Click the link to sign in.
+              {t.rich("magicLinkSent", { email, strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
             <button
               onClick={onClose}
               className="mt-6 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
             >
-              Got it, close this
+              {t("gotIt")}
             </button>
           </div>
         )}

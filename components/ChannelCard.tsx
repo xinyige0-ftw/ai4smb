@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 const CHANNEL_LABELS: Record<string, { label: string; icon: string }> = {
   email: { label: "Email", icon: "📧" },
@@ -13,7 +14,7 @@ const CHANNEL_LABELS: Record<string, { label: string; icon: string }> = {
   wechat: { label: "微信 WeChat", icon: "💚" },
 };
 
-function ContentBlock({ label, value }: { label: string; value: string }) {
+function ContentBlock({ label, value, copiedLabel, copyLabel }: { label: string; value: string; copiedLabel: string; copyLabel: string }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -32,7 +33,7 @@ function ContentBlock({ label, value }: { label: string; value: string }) {
           onClick={copy}
           className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
         >
-          {copied ? "✓ Copied" : "Copy"}
+          {copied ? copiedLabel : copyLabel}
         </button>
       </div>
       <div className="whitespace-pre-wrap rounded-lg bg-zinc-50 px-3 py-2.5 text-sm leading-relaxed text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
@@ -53,23 +54,24 @@ function hasVariants(content: Record<string, unknown>): content is { variant_a: 
     && content.variant_b != null && typeof content.variant_b === "object";
 }
 
-function renderChannelContent(channel: string, content: Record<string, unknown>) {
+function renderChannelContent(channel: string, content: Record<string, unknown>, t: (key: string) => string) {
+  const cp = { copiedLabel: t("copied"), copyLabel: t("copy") };
   switch (channel) {
     case "email":
       return (
         <>
-          <ContentBlock label="Subject Line" value={String(content.subject || "")} />
-          <ContentBlock label="Email Body" value={String(content.body || "")} />
+          <ContentBlock label={t("subjectLine")} value={String(content.subject || "")} {...cp} />
+          <ContentBlock label={t("emailBody")} value={String(content.body || "")} {...cp} />
         </>
       );
     case "instagram":
       return (
         <>
-          <ContentBlock label="Caption" value={String(content.caption || "")} />
-          <ContentBlock label="Image Idea" value={String(content.imageIdea || "")} />
+          <ContentBlock label={t("caption")} value={String(content.caption || "")} {...cp} />
+          <ContentBlock label={t("imageIdea")} value={String(content.imageIdea || "")} {...cp} />
           {content.bestTime && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Best time to post: {String(content.bestTime)}
+              {t("bestTime")}: {String(content.bestTime)}
             </p>
           )}
         </>
@@ -77,9 +79,9 @@ function renderChannelContent(channel: string, content: Record<string, unknown>)
     case "facebook":
       return (
         <>
-          <ContentBlock label="Post" value={String(content.text || "")} />
+          <ContentBlock label={t("post")} value={String(content.text || "")} {...cp} />
           {content.boostTip && (
-            <ContentBlock label="Boost Tip" value={String(content.boostTip || "")} />
+            <ContentBlock label={t("boostTip")} value={String(content.boostTip || "")} {...cp} />
           )}
         </>
       );
@@ -87,17 +89,17 @@ function renderChannelContent(channel: string, content: Record<string, unknown>)
       return (
         <>
           {Array.isArray(content.headlines) && (
-            <ContentBlock label="Headlines" value={content.headlines.join("\n")} />
+            <ContentBlock label={t("headlines")} value={content.headlines.join("\n")} {...cp} />
           )}
           {Array.isArray(content.descriptions) && (
-            <ContentBlock label="Descriptions" value={content.descriptions.join("\n")} />
+            <ContentBlock label={t("descriptions")} value={content.descriptions.join("\n")} {...cp} />
           )}
           {Array.isArray(content.keywords) && (
-            <ContentBlock label="Keywords" value={content.keywords.join(", ")} />
+            <ContentBlock label={t("keywords")} value={content.keywords.join(", ")} {...cp} />
           )}
           {content.dailyBudget && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Suggested daily budget: {String(content.dailyBudget)}
+              {t("dailyBudget")}: {String(content.dailyBudget)}
             </p>
           )}
         </>
@@ -105,32 +107,32 @@ function renderChannelContent(channel: string, content: Record<string, unknown>)
     case "tiktok":
       return (
         <>
-          <ContentBlock label="Hook (first 3 seconds)" value={String(content.hook || "")} />
-          <ContentBlock label="Script" value={String(content.script || "")} />
-          <ContentBlock label="Call to Action" value={String(content.cta || "")} />
+          <ContentBlock label={t("hook")} value={String(content.hook || "")} {...cp} />
+          <ContentBlock label={t("script")} value={String(content.script || "")} {...cp} />
+          <ContentBlock label={t("callToAction")} value={String(content.cta || "")} {...cp} />
         </>
       );
     case "sms":
-      return <ContentBlock label="Message" value={String(content.text || "")} />;
+      return <ContentBlock label={t("message")} value={String(content.text || "")} {...cp} />;
     case "xiaohongshu":
       return (
         <>
-          <ContentBlock label="Note Title" value={String(content.title || "")} />
-          <ContentBlock label="Note Body" value={String(content.body || "")} />
+          <ContentBlock label={t("noteTitle")} value={String(content.title || "")} {...cp} />
+          <ContentBlock label={t("noteBody")} value={String(content.body || "")} {...cp} />
           {Array.isArray(content.hashtags) && (
-            <ContentBlock label="Hashtags" value={content.hashtags.map((h: string) => `#${h}`).join(" ")} />
+            <ContentBlock label={t("hashtags")} value={content.hashtags.map((h: string) => `#${h}`).join(" ")} {...cp} />
           )}
           {content.coverTextIdea && (
-            <ContentBlock label="Cover Text Idea" value={String(content.coverTextIdea)} />
+            <ContentBlock label={t("coverTextIdea")} value={String(content.coverTextIdea)} {...cp} />
           )}
           {Array.isArray(content.productTags) && content.productTags.length > 0 && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Product tags: {content.productTags.join(", ")}
+              {t("productTags")}: {content.productTags.join(", ")}
             </p>
           )}
           {content.bestTime && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Best time to post: {String(content.bestTime)}
+              {t("bestTime")}: {String(content.bestTime)}
             </p>
           )}
         </>
@@ -139,20 +141,20 @@ function renderChannelContent(channel: string, content: Record<string, unknown>)
       return (
         <>
           {content.momentsPost && (
-            <ContentBlock label="Moments Post" value={String(content.momentsPost)} />
+            <ContentBlock label={t("momentsPost")} value={String(content.momentsPost)} {...cp} />
           )}
           {content.officialAccountTitle && (
-            <ContentBlock label="Official Account Article" value={String(content.officialAccountTitle)} />
+            <ContentBlock label={t("officialAccount")} value={String(content.officialAccountTitle)} {...cp} />
           )}
           {content.officialAccountSummary && (
-            <ContentBlock label="Article Summary" value={String(content.officialAccountSummary)} />
+            <ContentBlock label={t("articleSummary")} value={String(content.officialAccountSummary)} {...cp} />
           )}
           {content.miniProgramCta && (
-            <ContentBlock label="Mini Program CTA" value={String(content.miniProgramCta)} />
+            <ContentBlock label={t("miniProgramCta")} value={String(content.miniProgramCta)} {...cp} />
           )}
           {content.bestTime && (
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Best time to post: {String(content.bestTime)}
+              {t("bestTime")}: {String(content.bestTime)}
             </p>
           )}
         </>
@@ -160,16 +162,18 @@ function renderChannelContent(channel: string, content: Record<string, unknown>)
     default:
       return (
         <ContentBlock
-          label="Content"
+          label={t("content")}
           value={Object.entries(content)
             .map(([k, v]) => `${k}: ${String(v)}`)
             .join("\n")}
+          {...cp}
         />
       );
   }
 }
 
 export default function ChannelCard({ channel, why, content }: ChannelCardProps) {
+  const t = useTranslations("channel");
   const [showWhy, setShowWhy] = useState(false);
   const [activeVariant, setActiveVariant] = useState<"a" | "b">("a");
   const info = CHANNEL_LABELS[channel] || { label: channel, icon: "📢" };
@@ -190,14 +194,14 @@ export default function ChannelCard({ channel, why, content }: ChannelCardProps)
           onClick={() => setShowWhy(!showWhy)}
           className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
         >
-          {showWhy ? "Hide reasoning" : "Why this channel?"}
+          {showWhy ? t("hideReasoning") : t("whyThis")}
         </button>
       </div>
 
       {variants && (
         <div className="mt-3">
           <span className="mb-1.5 inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            Two versions to try
+            {t("twoVersions")}
           </span>
           <div className="flex gap-2">
             <button
@@ -208,7 +212,7 @@ export default function ChannelCard({ channel, why, content }: ChannelCardProps)
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
               }`}
             >
-              Version A
+              {t("versionA")}
             </button>
             <button
               onClick={() => setActiveVariant("b")}
@@ -218,7 +222,7 @@ export default function ChannelCard({ channel, why, content }: ChannelCardProps)
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
               }`}
             >
-              Version B
+              {t("versionB")}
             </button>
           </div>
         </div>
@@ -230,7 +234,7 @@ export default function ChannelCard({ channel, why, content }: ChannelCardProps)
         </p>
       )}
 
-      {renderChannelContent(channel, displayContent)}
+      {renderChannelContent(channel, displayContent, t)}
     </div>
   );
 }

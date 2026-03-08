@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BUSINESS_TYPES, GOALS, BUDGETS, CHANNELS, type GenerateInput } from "@/lib/prompts";
 import CampaignResults from "./CampaignResults";
 
@@ -14,6 +15,9 @@ type CampaignData = {
 };
 
 export default function GenerateWizard() {
+  const t = useTranslations("generate");
+  const tb = useTranslations("businesses");
+  const tc = useTranslations("common");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +34,16 @@ export default function GenerateWizard() {
   const [channels, setChannels] = useState<string[]>(["smart"]);
   const [details, setDetails] = useState("");
   const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ai4smb_prefs");
+      if (!raw) return;
+      const prefs = JSON.parse(raw);
+      if (prefs.businessType) setBusinessType(prefs.businessType);
+      if (prefs.channels?.length) setChannels(prefs.channels);
+    } catch { /* ignore corrupt data */ }
+  }, []);
 
   function toggleChannel(id: string) {
     if (id === "smart") {
@@ -74,14 +88,14 @@ export default function GenerateWizard() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Something went wrong.");
+        setError(data.error || tc("errorGeneric"));
         return;
       }
       setCampaign(data.campaign);
       setCampaignId(data.id || null);
       setStep(3);
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
     }
@@ -126,10 +140,10 @@ export default function GenerateWizard() {
       {step === 1 && (
         <div>
           <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            What&apos;s your business?
+            {t("wizardTitle")}
           </h1>
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-            Tap one to get started
+            {t("wizardSubtitle")}
           </p>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -147,7 +161,7 @@ export default function GenerateWizard() {
                   }`}
               >
                 <span className="text-2xl">{bt.icon}</span>
-                <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{bt.label}</span>
+                <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{tb(bt.id)}</span>
               </button>
             ))}
           </div>
@@ -156,7 +170,7 @@ export default function GenerateWizard() {
             <div className="mt-4">
               <input
                 type="text"
-                placeholder="Describe your business in a few words..."
+                placeholder={t("customPlaceholder")}
                 value={businessTypeCustom}
                 onChange={(e) => setBusinessTypeCustom(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
@@ -167,7 +181,7 @@ export default function GenerateWizard() {
                 disabled={!businessTypeCustom.trim()}
                 className="mt-3 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
               >
-                Continue
+                {t("continue")}
               </button>
             </div>
           )}
@@ -177,13 +191,13 @@ export default function GenerateWizard() {
               onClick={() => setShowName(true)}
               className="mt-4 w-full text-center text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
             >
-              + Add your business name (optional)
+              {t("addBusinessName")}
             </button>
           )}
           {showName && (
             <input
               type="text"
-              placeholder="e.g. Sunrise Bakery"
+              placeholder={t("businessNamePlaceholder")}
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               className="mt-4 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
@@ -196,10 +210,10 @@ export default function GenerateWizard() {
       {step === 2 && (
         <div>
           <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            What do you need?
+            {t("step2Title")}
           </h1>
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-            Pick a goal, then hit create
+            {t("step2Subtitle")}
           </p>
 
           {/* Goals */}
@@ -216,8 +230,8 @@ export default function GenerateWizard() {
               >
                 <span className="text-xl">{g.icon}</span>
                 <div>
-                  <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{g.label}</div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">{g.description}</div>
+                  <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{t(`goal_${g.id}`)}</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">{t(`goalDesc_${g.id}`)}</div>
                 </div>
               </button>
             ))}
@@ -225,7 +239,7 @@ export default function GenerateWizard() {
 
           {/* Budget */}
           <div className="mb-5">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Budget</div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("budgetLabel")}</div>
             <div className="flex flex-wrap gap-2">
               {BUDGETS.map((b) => (
                 <button
@@ -237,7 +251,7 @@ export default function GenerateWizard() {
                       : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:text-zinc-300 dark:hover:border-zinc-500"
                     }`}
                 >
-                  {b.label}
+                  {t(`budget_${b.id}`)}
                 </button>
               ))}
             </div>
@@ -245,7 +259,7 @@ export default function GenerateWizard() {
 
           {/* Channels */}
           <div className="mb-5">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Where to post</div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("channelsLabel")}</div>
             <div className="flex flex-wrap gap-2">
               {CHANNELS.map((ch) => (
                 <button
@@ -257,7 +271,7 @@ export default function GenerateWizard() {
                       : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:text-zinc-300 dark:hover:border-zinc-500"
                     }`}
                 >
-                  {ch.label}
+                  {t(`channel_${ch.id}`)}
                 </button>
               ))}
             </div>
@@ -269,11 +283,11 @@ export default function GenerateWizard() {
               onClick={() => setShowDetails(true)}
               className="mb-6 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
             >
-              + Any details you&apos;d like to add? (optional)
+              {t("addDetails")}
             </button>
           ) : (
             <textarea
-              placeholder="e.g. We're open late on Fridays, our specialty is gluten-free"
+              placeholder={t("detailsPlaceholder")}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               rows={3}
@@ -293,7 +307,7 @@ export default function GenerateWizard() {
               onClick={() => setStep(1)}
               className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
             >
-              Back
+              {tc("back")}
             </button>
             <button
               onClick={handleGenerate}
@@ -303,10 +317,10 @@ export default function GenerateWizard() {
               {loading ? (
                 <>
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Creating...
+                  {t("creating")}
                 </>
               ) : (
-                "Create my campaign"
+                t("createCampaign")
               )}
             </button>
           </div>

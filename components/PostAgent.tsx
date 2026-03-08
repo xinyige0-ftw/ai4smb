@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface ChannelData {
   channel: string;
@@ -32,6 +33,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 export default function PostAgent({ channels, businessContext }: PostAgentProps) {
+  const t = useTranslations("postAgent");
   const [formatted, setFormatted] = useState<Record<string, FormattedPost>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<Record<string, boolean>>({});
@@ -82,10 +84,10 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-800 dark:bg-purple-950">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-300">
-          Ready to Post
+          {t("title")}
         </h2>
         <p className="text-sm text-purple-900 dark:text-purple-100">
-          Let our AI format your campaign for each platform — optimized for character limits, hashtags, and best practices.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -107,7 +109,7 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
                     disabled={isLoading}
                     className="rounded-lg bg-purple-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-purple-700 disabled:opacity-40"
                   >
-                    {isLoading ? "Formatting..." : "Prepare for posting"}
+                    {isLoading ? t("formatting") : t("prepareForPosting")}
                   </button>
                 )}
               </div>
@@ -129,7 +131,7 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
                   )}
 
                   {post.bestTime && (
-                    <p className="text-xs text-zinc-400">Best time to post: {post.bestTime}</p>
+                    <p className="text-xs text-zinc-400">{t("bestTime")}: {post.bestTime}</p>
                   )}
 
                   <div className="flex gap-2">
@@ -137,14 +139,14 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
                       onClick={() => copyContent(ch.channel, getReadyText(post))}
                       className="rounded-lg border border-zinc-200 px-4 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
                     >
-                      {isCopied ? "✓ Copied!" : `Copy for ${PLATFORM_LABELS[ch.channel] || ch.channel}`}
+                      {isCopied ? `✓ ${t("copied")}` : `${t("copy")} ${PLATFORM_LABELS[ch.channel] || ch.channel}`}
                     </button>
                     <button
                       onClick={() => formatForPlatform(ch)}
                       disabled={isLoading}
                       className="rounded-lg border border-zinc-200 px-4 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 disabled:opacity-40"
                     >
-                      {isLoading ? "..." : "Reformat"}
+                      {isLoading ? "..." : t("reformat")}
                     </button>
                   </div>
                 </div>

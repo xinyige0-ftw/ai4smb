@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
+import VoiceInput from "./VoiceInput";
 
 interface SegmentData {
   summary: string;
@@ -86,18 +87,21 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <textarea
-        placeholder="Paste your reviews here...
+      <div className="flex items-start gap-1.5">
+        <textarea
+          placeholder="Paste your reviews here...
 
 Example:
 ★★★★★ 'Best coffee in the neighborhood! The baristas remember my order and it always feels like home. Bit pricey but worth it for the quality.'
 
 ★★★★☆ 'Quick stop on my work commute. Usually grab a latte and a croissant. Never crowded in the mornings which I love.'"
-        value={reviewText}
-        onChange={(e) => setReviewText(e.target.value)}
-        rows={10}
-        className="w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-      />
+          value={reviewText}
+          onChange={(e) => setReviewText(e.target.value)}
+          rows={10}
+          className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+        />
+        <VoiceInput onTranscript={(t) => setReviewText((v) => v + (v ? " " : "") + t)} className="mt-1" />
+      </div>
       <p className="mt-1 text-right text-xs text-zinc-400">
         {reviewText.length} characters {reviewText.length > 8000 && "· extra text will be trimmed"}
       </p>

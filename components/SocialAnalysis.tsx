@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
+import VoiceInput from "./VoiceInput";
 
 interface SegmentData {
   summary: string;
@@ -89,8 +90,9 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <textarea
-        placeholder="Paste your social content here...
+      <div className="flex items-start gap-1.5">
+        <textarea
+          placeholder="Paste your social content here...
 
 Example:
 Bio: 'Austin's favorite neighborhood coffee shop ☕ | Fresh pastries daily | Dog-friendly patio'
@@ -102,11 +104,13 @@ Post 2 (45 likes): 'New seasonal menu dropping this Friday — pumpkin everythin
 Comments: 'Already planning my visit' / 'Love your fall drinks'
 
 Post 3 (210 likes): 'Huge thanks to everyone who came out to our 5-year anniversary party last night! 🎉'"
-        value={socialContent}
-        onChange={(e) => setSocialContent(e.target.value)}
-        rows={12}
-        className="w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-      />
+          value={socialContent}
+          onChange={(e) => setSocialContent(e.target.value)}
+          rows={12}
+          className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+        />
+        <VoiceInput onTranscript={(t) => setSocialContent((v) => v + (v ? " " : "") + t)} className="mt-1" />
+      </div>
       <p className="mt-1 text-right text-xs text-zinc-400">
         {socialContent.length} characters {socialContent.length > 5000 && "· extra text will be trimmed"}
       </p>
