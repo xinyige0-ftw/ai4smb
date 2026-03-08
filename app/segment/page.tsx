@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SegmentRouter from "@/components/SegmentRouter";
 import AuthButton from "@/components/AuthButtonWrapper";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export const metadata: Metadata = {
   title: "Customer Segments — AI4SMB Insights",
@@ -15,8 +16,9 @@ export default function SegmentPage() {
           <a href="/" className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
             AI4SMB Insights
           </a>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <a href="/history" className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">History</a>
+            <LanguageToggle />
             <AuthButton />
           </div>
         </div>

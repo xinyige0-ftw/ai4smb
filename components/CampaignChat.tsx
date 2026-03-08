@@ -1,52 +1,59 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import CampaignResults from "./CampaignResults";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
+interface CampaignData {
+  strategy: string;
+  channels: {
+    channel: string;
+    why: string;
+    content: Record<string, unknown>;
+  }[];
+  thisWeek?: { day: string; action: string; why: string }[];
+}
+
 interface CampaignChatProps {
-  onCampaignGenerated?: (campaign: unknown) => void;
   onBack: () => void;
 }
 
 const INITIAL_GREETING: Message = {
   role: "assistant",
   content:
-    "Hi! I'm your marketing strategist. Tell me about your business and what you're trying to achieve — I'll help you build a campaign.\n\nFor example: \"I run a coffee shop in Seattle and want to attract more morning commuters.\"",
+    "Hey! Tell me about your business and what you want to achieve — I'll build you a campaign.\n\nExample: \"I run a coffee shop and want more morning customers.\"",
 };
 
 const REFINEMENT_CHIPS = [
   "Make it shorter",
-  "Try a different tone",
-  "More casual",
-  "More professional",
+  "Different tone",
   "Add a seasonal hook",
-  "Focus on Instagram",
-  "Focus on email",
 ];
 
-export default function CampaignChat({
-  onCampaignGenerated,
-  onBack,
-}: CampaignChatProps) {
+export default function CampaignChat({ onBack }: CampaignChatProps) {
   const [messages, setMessages] = useState<Message[]>([INITIAL_GREETING]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
+  const [hasTTS, setHasTTS] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    const supported =
+    const hasSR =
       typeof window !== "undefined" &&
       ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
-    setHasSpeechSupport(!!supported);
+    setHasSpeechSupport(!!hasSR);
+    setHasTTS(typeof window !== "undefined" && "speechSynthesis" in window);
   }, []);
 
   useEffect(() => {
@@ -54,7 +61,21 @@ export default function CampaignChat({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages]);
+  }, [messages, campaign]);
+
+  function speakText(text: string) {
+    if (!ttsEnabled || !hasTTS) return;
+    window.speechSynthesis.cancel();
+    const clean = text
+      .replace(/```json[\s\S]*?```/g, "")
+      .replace(/[*_#`]/g, "")
+      .trim();
+    if (!clean) return;
+    const utterance = new SpeechSynthesisUtterance(clean.slice(0, 500));
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+  }
 
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return;
@@ -89,22 +110,22 @@ export default function CampaignChat({
         const jsonMatch = data.message.match(/```json\s*([\s\S]*?)```/);
         if (jsonMatch) {
           try {
-            const campaign = JSON.parse(jsonMatch[1]);
-            if (campaign.type === "campaign" && onCampaignGenerated) {
-              onCampaignGenerated(campaign);
+            const parsed = JSON.parse(jsonMatch[1]);
+            if (parsed.channels) {
+              setCampaign(parsed);
             }
           } catch {
-            /* malformed JSON — ignore */
+            /* malformed JSON */
           }
         }
+
+        const plainText = data.message.replace(/```json[\s\S]*?```/g, "").trim();
+        if (plainText) speakText(plainText);
       }
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: "Sorry, something went wrong. Please try again.",
-        },
+        { role: "assistant", content: "Sorry, something went wrong. Please try again." },
       ]);
     } finally {
       setLoading(false);
@@ -120,7 +141,6 @@ export default function CampaignChat({
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
     if (!SR) return;
 
     const recognition = new SR();
@@ -151,80 +171,113 @@ export default function CampaignChat({
     }
   }
 
-  const hasGenerated = messages.some((m) => m.content.includes("```json"));
+  function stripJson(text: string): string {
+    return text.replace(/```json[\s\S]*?```/g, "").trim();
+  }
+
+  const hasGenerated = campaign !== null;
 
   return (
-    <div
-      className="mx-auto flex w-full max-w-2xl flex-col px-4"
-      style={{ height: "calc(100vh - 120px)" }}
-    >
+    <div className="mx-auto flex w-full max-w-2xl flex-col px-3 sm:px-4" style={{ minHeight: "calc(100vh - 120px)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between py-3">
         <button
           onClick={onBack}
           className="text-sm text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
         >
           ← Back
         </button>
-        <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-          Chat with AI Strategist
+        <h1 className="text-base font-bold text-zinc-900 dark:text-zinc-50 sm:text-lg">
+          AI Strategist
         </h1>
-        <div className="w-12" />
+        <div className="flex items-center gap-1">
+          {hasTTS && (
+            <button
+              onClick={() => {
+                if (ttsEnabled) window.speechSynthesis.cancel();
+                setTtsEnabled(!ttsEnabled);
+              }}
+              className={`rounded-lg p-2 text-xs transition-all ${
+                ttsEnabled
+                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
+                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              }`}
+              title={ttsEnabled ? "Mute AI voice" : "Enable AI voice"}
+            >
+              {ttsEnabled ? "🔊" : "🔇"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto pb-4">
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto pb-3">
+        {messages.map((msg, i) => {
+          const isUser = msg.role === "user";
+          const clean = isUser ? msg.content : stripJson(msg.content);
+          const hasCampaignJson = !isUser && msg.content.includes("```json");
+
+          if (!clean && hasCampaignJson) return null;
+
+          return (
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
-              }`}
+              key={i}
+              className={`flex ${isUser ? "justify-end" : "justify-start"}`}
             >
-              <div className="whitespace-pre-wrap">
-                {msg.content.replace(
-                  /```json[\s\S]*?```/g,
-                  "[Campaign generated — see results below]",
+              <div
+                className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[80%] sm:px-4 sm:py-3 ${
+                  isUser
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
+                }`}
+              >
+                <div className="whitespace-pre-wrap">{clean}</div>
+                {hasCampaignJson && (
+                  <p className="mt-2 text-xs font-medium opacity-70">
+                    ↓ Campaign ready below
+                  </p>
                 )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {loading && (
           <div className="flex justify-start">
             <div className="rounded-2xl bg-zinc-100 px-4 py-3 dark:bg-zinc-800">
               <div className="flex gap-1">
-                <span
-                  className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"
-                  style={{ animationDelay: "0ms" }}
-                />
-                <span
-                  className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"
-                  style={{ animationDelay: "150ms" }}
-                />
-                <span
-                  className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"
-                  style={{ animationDelay: "300ms" }}
-                />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" style={{ animationDelay: "0ms" }} />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" style={{ animationDelay: "150ms" }} />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
         )}
       </div>
 
+      {/* Campaign results (rendered properly with A/B tabs, PostAgent, etc.) */}
+      {campaign && (
+        <div className="border-t border-zinc-200 dark:border-zinc-700">
+          <CampaignResults
+            campaign={campaign}
+            onRegenerate={() => sendMessage("Regenerate the entire campaign")}
+            onStartOver={() => {
+              setCampaign(null);
+              setMessages([INITIAL_GREETING]);
+            }}
+            onAdjust={() => inputRef.current?.focus()}
+            loading={loading}
+          />
+        </div>
+      )}
+
       {/* Refinement chips */}
       {hasGenerated && !loading && (
-        <div className="flex flex-wrap gap-2 pb-3">
+        <div className="flex gap-2 overflow-x-auto pb-2 pt-1">
           {REFINEMENT_CHIPS.map((chip) => (
             <button
               key={chip}
               onClick={() => sendMessage(chip)}
-              className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:border-blue-400 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
+              className="shrink-0 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:border-blue-400 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
             >
               {chip}
             </button>
@@ -233,7 +286,7 @@ export default function CampaignChat({
       )}
 
       {/* Input area */}
-      <div className="border-t border-zinc-200 py-4 dark:border-zinc-700">
+      <div className="border-t border-zinc-200 py-3 dark:border-zinc-700">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -242,30 +295,20 @@ export default function CampaignChat({
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            style={{ maxHeight: "120px" }}
+            className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:px-4 sm:py-3"
+            style={{ maxHeight: "100px" }}
           />
           {hasSpeechSupport && (
             <button
               onClick={toggleVoice}
-              className={`rounded-xl p-3 transition-all ${
+              className={`rounded-xl p-2.5 transition-all sm:p-3 ${
                 isListening
                   ? "animate-pulse bg-red-500 text-white"
                   : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
               }`}
               title={isListening ? "Stop listening" : "Voice input"}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                 <line x1="12" x2="12" y1="19" y2="22" />
@@ -275,19 +318,9 @@ export default function CampaignChat({
           <button
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || loading}
-            className="rounded-xl bg-blue-600 p-3 text-white transition-all hover:bg-blue-700 disabled:opacity-40"
+            className="rounded-xl bg-blue-600 p-2.5 text-white transition-all hover:bg-blue-700 disabled:opacity-40 sm:p-3"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" x2="11" y1="2" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>

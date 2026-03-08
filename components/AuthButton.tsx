@@ -56,6 +56,13 @@ export default function AuthButton() {
               </div>
               <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
               <a
+                href="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                👤 Profile
+              </a>
+              <a
                 href="/history"
                 onClick={() => setMenuOpen(false)}
                 className="block rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"

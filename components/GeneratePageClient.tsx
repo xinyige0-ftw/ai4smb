@@ -12,7 +12,7 @@ export default function GeneratePageClient() {
   return (
     <>
       {/* Mode toggle */}
-      <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 pt-6">
+      <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 pt-4 sm:pt-6">
         <button
           onClick={() => setMode("wizard")}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -21,7 +21,7 @@ export default function GeneratePageClient() {
               : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
           }`}
         >
-          Form Wizard
+          Form
         </button>
         <button
           onClick={() => setMode("chat")}
