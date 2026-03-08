@@ -25,7 +25,7 @@ export default function TeachMeMode({ onBack }: { onBack: () => void }) {
 
   const currentAnswer = answers[currentQ] || "";
   const isLastQuestion = currentQ === TEACH_ME_QUESTIONS.length - 1;
-  const canProceed = currentAnswer.trim().length > 5;
+  const canProceed = currentAnswer.trim().length > 0;
 
   function handleAnswer(val: string) {
     const updated = [...answers];

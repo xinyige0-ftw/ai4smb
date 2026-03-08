@@ -81,13 +81,13 @@ export default function Home() {
                 {t("segmentDesc")}
               </p>
               <ul className="mb-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Answer 5 quick questions</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Paste your Google reviews</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Upload a spreadsheet</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Get instant industry benchmarks</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("segFeature1")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("segFeature2")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("segFeature3")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("segFeature4")}</li>
               </ul>
               <span className="mt-auto text-sm font-semibold text-blue-600 group-hover:text-blue-700 dark:text-blue-400">
-                Analyze my customers →
+                {t("segCta")} →
               </span>
             </a>
 
@@ -104,13 +104,13 @@ export default function Home() {
                 {t("campaignDesc")}
               </p>
               <ul className="mb-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Instagram captions</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Email subject lines &amp; body</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Google / Facebook ad copy</li>
-                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Tailored to your business</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("campFeature1")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("campFeature2")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("campFeature3")}</li>
+                <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> {t("campFeature4")}</li>
               </ul>
               <span className="mt-auto text-sm font-semibold text-blue-600 group-hover:text-blue-700 dark:text-blue-400">
-                Create my campaign →
+                {t("campCta")} →
               </span>
             </a>
           </div>
@@ -158,12 +158,12 @@ export default function Home() {
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { icon: "☕", label: "Coffee shops & cafes" },
-              { icon: "🛍️", label: "Retail boutiques" },
-              { icon: "💆", label: "Salons & spas" },
-              { icon: "🍽️", label: "Restaurants & food" },
-              { icon: "🏋️", label: "Gyms & fitness" },
-              { icon: "🔧", label: "Local services" },
+              { icon: "☕", label: t("bizCafe") },
+              { icon: "🛍️", label: t("bizRetail") },
+              { icon: "💆", label: t("bizSalon") },
+              { icon: "🍽️", label: t("bizRestaurant") },
+              { icon: "🏋️", label: t("bizGym") },
+              { icon: "🔧", label: t("bizServices") },
             ].map(({ icon, label }) => (
               <div
                 key={label}
