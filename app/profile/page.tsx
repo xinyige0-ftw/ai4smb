@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AuthButton from "@/components/AuthButtonWrapper";
 import LanguageToggle from "@/components/LanguageToggle";
+
+interface Preferences {
+  businessType?: string;
+  channels?: string[];
+  tone?: string;
+}
 
 interface ProfileData {
   email: string;
@@ -11,12 +17,77 @@ interface ProfileData {
   totalCampaigns: number;
   totalSegments: number;
   rateLimit: { used: number; limit: number; resetsAt: number | null };
+  preferences?: Preferences;
 }
+
+const BUSINESS_TYPES = [
+  { value: "cafe", label: "Cafe" },
+  { value: "retail", label: "Retail" },
+  { value: "salon", label: "Salon" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "home_services", label: "Home Services" },
+  { value: "fitness", label: "Fitness" },
+  { value: "consulting", label: "Consulting" },
+  { value: "ecommerce", label: "E-commerce" },
+  { value: "trades", label: "Trades" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "creative", label: "Creative" },
+  { value: "other", label: "Other" },
+] as const;
+
+const CHANNELS = [
+  { value: "email", label: "Email" },
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
+  { value: "google_ads", label: "Google Ads" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "sms", label: "SMS" },
+  { value: "xiaohongshu", label: "Xiaohongshu" },
+  { value: "wechat", label: "WeChat" },
+] as const;
+
+const TONES = [
+  { value: "casual", label: "Casual" },
+  { value: "professional", label: "Professional" },
+  { value: "friendly", label: "Friendly" },
+  { value: "urgent", label: "Urgent" },
+  { value: "playful", label: "Playful" },
+] as const;
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [prefs, setPrefs] = useState<Preferences>({});
+  const [saving, setSaving] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const savePreferences = useCallback((next: Preferences) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ preferences: next }),
+        });
+      } finally {
+        setSaving(false);
+      }
+    }, 500);
+  }, []);
+
+  const updatePref = useCallback(
+    <K extends keyof Preferences>(key: K, value: Preferences[K]) => {
+      setPrefs((prev) => {
+        const next = { ...prev, [key]: value };
+        savePreferences(next);
+        return next;
+      });
+    },
+    [savePreferences],
+  );
 
   useEffect(() => {
     const anonId =
@@ -30,7 +101,10 @@ export default function ProfilePage() {
         if (!r.ok) throw new Error("fetch_failed");
         return r.json();
       })
-      .then(setProfile)
+      .then((data: ProfileData) => {
+        setProfile(data);
+        if (data.preferences) setPrefs(data.preferences);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -175,22 +249,92 @@ export default function ProfilePage() {
               </a>
             </div>
 
-            {/* Preferences (placeholder) */}
-            <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
-              <h2 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wide dark:text-zinc-400">
-                Preferences
-              </h2>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Business type</span>
-                  <span className="text-xs text-zinc-400 italic">Coming soon</span>
+            {/* Preferences */}
+            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide dark:text-zinc-400">
+                  Preferences
+                </h2>
+                {saving && (
+                  <span className="text-xs text-zinc-400">Saving…</span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-5">
+                {/* Business type */}
+                <div>
+                  <label htmlFor="businessType" className="mb-1.5 block text-sm text-zinc-500 dark:text-zinc-400">
+                    Business type
+                  </label>
+                  <select
+                    id="businessType"
+                    value={prefs.businessType ?? ""}
+                    onChange={(e) => updatePref("businessType", e.target.value || undefined)}
+                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50"
+                  >
+                    <option value="">Select…</option>
+                    {BUSINESS_TYPES.map((bt) => (
+                      <option key={bt.value} value={bt.value}>{bt.label}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Preferred channels</span>
-                  <span className="text-xs text-zinc-400 italic">Coming soon</span>
+
+                {/* Preferred channels */}
+                <div>
+                  <span className="mb-1.5 block text-sm text-zinc-500 dark:text-zinc-400">
+                    Preferred channels
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {CHANNELS.map((ch) => {
+                      const checked = prefs.channels?.includes(ch.value) ?? false;
+                      return (
+                        <label
+                          key={ch.value}
+                          className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            checked
+                              ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const prev = prefs.channels ?? [];
+                              const next = checked
+                                ? prev.filter((c) => c !== ch.value)
+                                : [...prev, ch.value];
+                              updatePref("channels", next);
+                            }}
+                            className="sr-only"
+                          />
+                          {ch.label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Default tone */}
+                <div>
+                  <label htmlFor="tone" className="mb-1.5 block text-sm text-zinc-500 dark:text-zinc-400">
+                    Default tone
+                  </label>
+                  <select
+                    id="tone"
+                    value={prefs.tone ?? ""}
+                    onChange={(e) => updatePref("tone", e.target.value || undefined)}
+                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50"
+                  >
+                    <option value="">Select…</option>
+                    {TONES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-zinc-400">
+
+              <p className="mt-4 text-xs text-zinc-400">
                 Saved preferences will pre-fill your campaigns and segment analyses.
               </p>
             </div>

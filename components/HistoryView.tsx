@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import SegmentResults from "./SegmentResults";
 import CampaignResults from "./CampaignResults";
 
@@ -51,14 +52,16 @@ export default function HistoryView() {
   const [activeSegment, setActiveSegment] = useState<SegmentItem | null>(null);
   const [tab, setTab] = useState<"segments" | "campaigns">("segments");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const t = useTranslations("history");
+  const c = useTranslations("common");
 
   async function handleDelete(id: string, type: "campaign" | "segment") {
-    if (!confirm(`Delete this ${type}? This cannot be undone.`)) return;
+    if (!confirm(t("deleteConfirm"))) return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/history?id=${id}&type=${type}`, { method: "DELETE" });
       if (res.ok) {
-        if (type === "campaign") setCampaigns((prev) => prev.filter((c) => c.id !== id));
+        if (type === "campaign") setCampaigns((prev) => prev.filter((ci) => ci.id !== id));
         else setSegments((prev) => prev.filter((s) => s.id !== id));
       }
     } catch {}
@@ -113,21 +116,21 @@ export default function HistoryView() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-        Your History
+        {t("title")}
       </h1>
       <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-        Saved automatically on this device
+        {t("subtitle")}
       </p>
 
       {/* Tabs */}
       <div className="mb-6 flex rounded-xl border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-700 dark:bg-zinc-800">
-        {(["segments", "campaigns"] as const).map((t) => (
+        {(["segments", "campaigns"] as const).map((tabName) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold capitalize transition-all ${tab === t ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
+            key={tabName}
+            onClick={() => setTab(tabName)}
+            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${tab === tabName ? "bg-white shadow-sm text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"}`}
           >
-            {t} {t === "segments" ? `(${segments.length})` : `(${campaigns.length})`}
+            {c(tabName)} ({tabName === "segments" ? segments.length : campaigns.length})
           </button>
         ))}
       </div>
@@ -139,16 +142,16 @@ export default function HistoryView() {
       {empty && !loading && (
         <div className="py-16 text-center">
           <div className="mb-3 text-4xl">📭</div>
-          <p className="mb-1 font-medium text-zinc-700 dark:text-zinc-300">No history yet</p>
+          <p className="mb-1 font-medium text-zinc-700 dark:text-zinc-300">{t("empty")}</p>
           <p className="mb-6 text-sm text-zinc-400">
-            Generate a campaign or analyze your customers to get started.
+            {t("emptyDesc")}
           </p>
           <div className="flex justify-center gap-3">
             <a href="/segment" className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
-              Analyze customers
+              {t("analyzeCustomers")}
             </a>
             <a href="/generate" className="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300">
-              Write a campaign
+              {t("writeCampaign")}
             </a>
           </div>
         </div>
@@ -158,7 +161,7 @@ export default function HistoryView() {
       {tab === "segments" && !loading && (
         <div className="flex flex-col gap-3">
           {segments.length === 0 && !empty && (
-            <p className="py-8 text-center text-sm text-zinc-400">No segment analyses yet.</p>
+            <p className="py-8 text-center text-sm text-zinc-400">{t("noSegments")}</p>
           )}
           {segments.map((seg) => (
             <div key={seg.id} className="group relative">
@@ -197,7 +200,7 @@ export default function HistoryView() {
       {tab === "campaigns" && !loading && (
         <div className="flex flex-col gap-3">
           {campaigns.length === 0 && !empty && (
-            <p className="py-8 text-center text-sm text-zinc-400">No campaigns generated yet.</p>
+            <p className="py-8 text-center text-sm text-zinc-400">{t("noCampaigns")}</p>
           )}
           {campaigns.map((camp) => (
             <div key={camp.id} className="group relative">
@@ -235,7 +238,7 @@ export default function HistoryView() {
       )}
 
       <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-600">
-        History is tied to this browser. Sign in to sync across devices.
+        {t("syncNote")}
       </div>
     </div>
   );

@@ -39,9 +39,11 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState("");
   const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
   const [hasTTS, setHasTTS] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [preferredVoice, setPreferredVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -53,7 +55,21 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
       typeof window !== "undefined" &&
       ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
     setHasSpeechSupport(!!hasSR);
-    setHasTTS(typeof window !== "undefined" && "speechSynthesis" in window);
+    const ttsAvailable = typeof window !== "undefined" && "speechSynthesis" in window;
+    setHasTTS(ttsAvailable);
+
+    if (ttsAvailable) {
+      const pickVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find((v) =>
+          /samantha|google|natural|enhanced/i.test(v.name)
+        );
+        setPreferredVoice(preferred || voices[0] || null);
+      };
+      pickVoice();
+      window.speechSynthesis.addEventListener("voiceschanged", pickVoice);
+      return () => window.speechSynthesis.removeEventListener("voiceschanged", pickVoice);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,10 +87,22 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
       .replace(/[*_#`]/g, "")
       .trim();
     if (!clean) return;
-    const utterance = new SpeechSynthesisUtterance(clean.slice(0, 500));
-    utterance.rate = 1.05;
-    utterance.pitch = 1;
-    window.speechSynthesis.speak(utterance);
+
+    const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+    sentences.forEach((sentence, i) => {
+      const trimmed = sentence.trim();
+      if (!trimmed) return;
+      const utterance = new SpeechSynthesisUtterance(trimmed);
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+      if (preferredVoice) utterance.voice = preferredVoice;
+      if (i > 0) {
+        const pause = new SpeechSynthesisUtterance("");
+        pause.rate = 0.1;
+        window.speechSynthesis.speak(pause);
+      }
+      window.speechSynthesis.speak(utterance);
+    });
   }
 
   async function sendMessage(text: string) {
@@ -136,6 +164,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
+      setInterimText("");
       return;
     }
 
@@ -144,20 +173,38 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
     if (!SR) return;
 
     const recognition = new SR();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = document.documentElement.lang || "en-US";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0]?.[0]?.transcript;
-      if (transcript) {
-        setInput((prev) => prev + (prev ? " " : "") + transcript);
+      let finalTranscript = "";
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript;
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setInput((prev) => prev + (prev ? " " : "") + finalTranscript);
+        setInterimText("");
+      } else {
+        setInterimText(interim);
       }
     };
 
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      setInterimText("");
+    };
+    recognition.onerror = () => {
+      setIsListening(false);
+      setInterimText("");
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
@@ -287,23 +334,44 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
 
       {/* Input area */}
       <div className="border-t border-zinc-200 py-3 dark:border-zinc-700">
+        {isListening && (
+          <div className="mb-2 flex items-center gap-2 px-1">
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+            </span>
+            <span className="text-xs font-medium text-red-600 dark:text-red-400">
+              Listening... tap mic to stop
+            </span>
+          </div>
+        )}
         <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            rows={1}
-            className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:px-4 sm:py-3"
-            style={{ maxHeight: "100px" }}
-          />
+          <div className="relative flex-1">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={isListening ? "Speak now..." : "Type your message..."}
+              rows={1}
+              className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:px-4 sm:py-3"
+              style={{ maxHeight: "100px" }}
+            />
+            {interimText && (
+              <div className="pointer-events-none absolute inset-0 flex items-center overflow-hidden px-3 sm:px-4">
+                <span className="truncate text-sm text-zinc-400 dark:text-zinc-500">
+                  {input && <span className="invisible">{input} </span>}
+                  {interimText}
+                </span>
+              </div>
+            )}
+          </div>
           {hasSpeechSupport && (
             <button
               onClick={toggleVoice}
               className={`rounded-xl p-2.5 transition-all sm:p-3 ${
                 isListening
-                  ? "animate-pulse bg-red-500 text-white"
+                  ? "bg-red-500 text-white ring-2 ring-red-300 dark:ring-red-700"
                   : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
               }`}
               title={isListening ? "Stop listening" : "Voice input"}

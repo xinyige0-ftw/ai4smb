@@ -186,39 +186,43 @@ export default function ChannelCard({ channel, why, content }: ChannelCardProps)
           <span>{info.icon}</span>
           {info.label}
         </h3>
-        <div className="flex items-center gap-3">
-          {variants && (
-            <div className="flex rounded-full bg-zinc-100 p-0.5 dark:bg-zinc-800">
-              <button
-                onClick={() => setActiveVariant("a")}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
-                  activeVariant === "a"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50"
-                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-                }`}
-              >
-                A
-              </button>
-              <button
-                onClick={() => setActiveVariant("b")}
-                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
-                  activeVariant === "b"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50"
-                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-                }`}
-              >
-                B
-              </button>
-            </div>
-          )}
-          <button
-            onClick={() => setShowWhy(!showWhy)}
-            className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-          >
-            {showWhy ? "Hide reasoning" : "Why this channel?"}
-          </button>
-        </div>
+        <button
+          onClick={() => setShowWhy(!showWhy)}
+          className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+        >
+          {showWhy ? "Hide reasoning" : "Why this channel?"}
+        </button>
       </div>
+
+      {variants && (
+        <div className="mt-3">
+          <span className="mb-1.5 inline-block rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            Two versions to try
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveVariant("a")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                activeVariant === "a"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              Version A
+            </button>
+            <button
+              onClick={() => setActiveVariant("b")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                activeVariant === "b"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              Version B
+            </button>
+          </div>
+        </div>
+      )}
 
       {showWhy && (
         <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-950 dark:text-blue-200">

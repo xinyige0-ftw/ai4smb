@@ -1,19 +1,23 @@
+import { useTranslations } from "next-intl";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import AuthButtonWrapper from "@/components/AuthButtonWrapper";
 import LanguageToggle from "@/components/LanguageToggle";
 
 export default function Home() {
+  const t = useTranslations("landing");
+  const c = useTranslations("common");
+
   return (
     <main className="min-h-screen bg-white dark:bg-black">
       {/* Nav */}
       <nav className="border-b border-zinc-100 bg-white dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
           <span className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-            AI4SMB Insights
+            {c("appName")}
           </span>
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900 dark:text-green-300">
-              100% Free
+              {c("free")}
             </span>
             <LanguageToggle />
             <AuthButtonWrapper />
@@ -25,30 +29,30 @@ export default function Home() {
       <section className="border-b border-zinc-100 bg-gradient-to-b from-white to-zinc-50 px-4 py-16 text-center dark:border-zinc-800 dark:from-black dark:to-zinc-950">
         <div className="mx-auto max-w-2xl">
           <div className="mb-4 inline-block rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
-            Built for small business owners
+            {t("badge")}
           </div>
           <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
-            The marketing team<br className="hidden sm:block" /> you never had.
+            {t("heroTitle")}
           </h1>
           <p className="mb-8 text-lg leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Free AI tools to understand your customers and write your marketing — no agency, no experience, no signup required.
+            {t("heroSubtitle")}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <a
               href="/segment"
               className="rounded-xl bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98]"
             >
-              Understand my customers →
+              {t("ctaSegment")} →
             </a>
             <a
               href="/generate"
               className="rounded-xl border-2 border-zinc-200 bg-white px-8 py-4 text-sm font-semibold text-zinc-700 transition-all hover:border-zinc-300 hover:shadow-sm active:scale-[0.98] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
             >
-              Write my campaign
+              {t("ctaCampaign")}
             </a>
           </div>
           <p className="mt-5 text-xs text-zinc-400 dark:text-zinc-600">
-            No credit card. No account. Just paste, click, done.
+            {t("noSignup")}
           </p>
         </div>
       </section>
@@ -57,10 +61,10 @@ export default function Home() {
       <section className="px-4 py-16">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-            Two tools, one goal
+            {t("toolsTitle")}
           </h2>
           <p className="mb-10 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Know who to talk to. Know what to say.
+            {t("toolsSubtitle")}
           </p>
 
           <div className="grid gap-6 sm:grid-cols-2">
@@ -71,10 +75,10 @@ export default function Home() {
             >
               <span className="mb-4 text-3xl">🔍</span>
               <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                Customer Segments
+                {t("segmentTitle")}
               </h3>
               <p className="mb-5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Find out who actually walks through your door — and what each group needs from you.
+                {t("segmentDesc")}
               </p>
               <ul className="mb-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Answer 5 quick questions</li>
@@ -94,10 +98,10 @@ export default function Home() {
             >
               <span className="mb-4 text-3xl">📣</span>
               <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                Campaign Generator
+                {t("campaignTitle")}
               </h3>
               <p className="mb-5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Generate a complete, ready-to-post marketing campaign in under a minute.
+                {t("campaignDesc")}
               </p>
               <ul className="mb-6 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <li className="flex items-center gap-2"><span className="text-blue-500">✓</span> Instagram captions</li>
@@ -117,32 +121,17 @@ export default function Home() {
       <section className="border-y border-zinc-100 bg-zinc-50 px-4 py-16 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-            How it works
+            {t("howTitle")}
           </h2>
           <p className="mb-10 text-center text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Done in minutes, not days
+            {t("howSubtitle")}
           </p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
-              {
-                step: "1",
-                icon: "🎯",
-                title: "Pick a tool",
-                body: "Choose to understand your customers or write a campaign. No setup, no login.",
-              },
-              {
-                step: "2",
-                icon: "💬",
-                title: "Answer a few questions",
-                body: "Tell the AI about your business in plain English. Takes about 60 seconds.",
-              },
-              {
-                step: "3",
-                icon: "✨",
-                title: "Get your results",
-                body: "Real insights and ready-to-use content — copy, paste, post. Done.",
-              },
+              { step: "1", icon: "🎯", title: t("step1Title"), body: t("step1Desc") },
+              { step: "2", icon: "💬", title: t("step2Title"), body: t("step2Desc") },
+              { step: "3", icon: "✨", title: t("step3Title"), body: t("step3Desc") },
             ].map(({ step, icon, title, body }) => (
               <div key={step} className="flex flex-col items-center text-center">
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl dark:bg-blue-900">
@@ -165,7 +154,7 @@ export default function Home() {
       <section className="px-4 py-16">
         <div className="mx-auto max-w-3xl text-center">
           <p className="mb-6 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Built for the business owner doing everything themselves
+            {t("builtFor")}
           </p>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
@@ -195,23 +184,23 @@ export default function Home() {
       <section className="border-t border-zinc-100 bg-blue-600 px-4 py-16 text-center dark:border-zinc-800">
         <div className="mx-auto max-w-xl">
           <h2 className="mb-3 text-2xl font-extrabold text-white">
-            Start for free. No signup needed.
+            {t("bottomCtaTitle")}
           </h2>
           <p className="mb-8 text-sm leading-relaxed text-blue-100">
-            Thousands of small business owners are finding their best customers and writing better marketing with AI4SMB. It&apos;s free, it&apos;s fast, and it takes less than two minutes.
+            {t("bottomCtaDesc")}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <a
               href="/segment"
               className="rounded-xl bg-white px-8 py-4 text-sm font-semibold text-blue-600 shadow-sm transition-all hover:bg-blue-50 active:scale-[0.98]"
             >
-              Understand my customers →
+              {t("ctaSegment")} →
             </a>
             <a
               href="/generate"
               className="rounded-xl border-2 border-blue-400 px-8 py-4 text-sm font-semibold text-white transition-all hover:bg-blue-500 active:scale-[0.98]"
             >
-              Write my campaign
+              {t("ctaCampaign")}
             </a>
           </div>
         </div>
@@ -220,9 +209,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-zinc-100 bg-white px-4 py-8 dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
-          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">AI4SMB Insights</span>
+          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{c("appName")}</span>
           <p className="text-xs text-zinc-400 dark:text-zinc-600">
-            Free AI marketing tools for small businesses. No account required.
+            {t("footerDesc")}
           </p>
         </div>
       </footer>

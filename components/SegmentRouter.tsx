@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import SegmentHub from "./SegmentHub";
 import type { Mode } from "./SegmentHub";
 import SegmentWizard from "./SegmentWizard";
@@ -28,13 +29,15 @@ function SubChoice({
   onSelect: (mode: Mode) => void;
   onBack: () => void;
 }) {
+  const c = useTranslations("common");
+
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-8">
       <button
         onClick={onBack}
         className="mb-4 text-sm text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
       >
-        ← Back
+        ← {c("back")}
       </button>
       <h2 className="mb-6 text-center text-xl font-bold text-zinc-900 dark:text-zinc-50">
         {title}
@@ -60,30 +63,27 @@ function SubChoice({
   );
 }
 
-const ASK_OPTIONS: SubChoiceOption[] = [
-  { icon: "💬", label: "Answer questions", target: "interview" },
-  { icon: "📈", label: "Show me industry benchmarks", target: "benchmark" },
-  { icon: "🤖", label: "Guide me through it", target: "teachme" },
-];
-
-const DATA_OPTIONS: SubChoiceOption[] = [
-  { icon: "📁", label: "Upload a spreadsheet (CSV)", target: "csv" },
-  { icon: "📋", label: "Paste transaction data", target: "pos" },
-];
-
-const TEXT_OPTIONS: SubChoiceOption[] = [
-  { icon: "⭐", label: "Paste reviews (Google, Yelp)", target: "reviews" },
-  {
-    icon: "📱",
-    label: "Paste social content (Instagram, RedNote)",
-    target: "social",
-  },
-];
-
 export default function SegmentRouter() {
   const [mode, setMode] = useState<Mode | null>(null);
+  const t = useTranslations("segment");
 
   const back = () => setMode(null);
+
+  const askOptions: SubChoiceOption[] = [
+    { icon: "💬", label: t("askQuestions"), target: "interview" },
+    { icon: "📈", label: t("showBenchmarks"), target: "benchmark" },
+    { icon: "🤖", label: t("guideMeThrough"), target: "teachme" },
+  ];
+
+  const dataOptions: SubChoiceOption[] = [
+    { icon: "📁", label: t("uploadCsv"), target: "csv" },
+    { icon: "📋", label: t("pasteTransactions"), target: "pos" },
+  ];
+
+  const textOptions: SubChoiceOption[] = [
+    { icon: "⭐", label: t("pasteReviews"), target: "reviews" },
+    { icon: "📱", label: t("pasteSocial"), target: "social" },
+  ];
 
   if (mode === null) return <SegmentHub onSelect={setMode} />;
 
@@ -91,7 +91,7 @@ export default function SegmentRouter() {
     return (
       <SubChoice
         title="How would you like to start?"
-        options={ASK_OPTIONS}
+        options={askOptions}
         onSelect={setMode}
         onBack={back}
       />
@@ -100,7 +100,7 @@ export default function SegmentRouter() {
     return (
       <SubChoice
         title="What kind of data do you have?"
-        options={DATA_OPTIONS}
+        options={dataOptions}
         onSelect={setMode}
         onBack={back}
       />
@@ -109,7 +109,7 @@ export default function SegmentRouter() {
     return (
       <SubChoice
         title="What would you like to analyze?"
-        options={TEXT_OPTIONS}
+        options={textOptions}
         onSelect={setMode}
         onBack={back}
       />

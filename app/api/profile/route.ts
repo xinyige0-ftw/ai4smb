@@ -24,10 +24,11 @@ export async function GET(req: Request) {
 
     const { data: sessions } = await db
       .from("sessions")
-      .select("id")
+      .select("id, preferences")
       .eq("user_id", user.id);
 
     const sessionIds = (sessions || []).map((s) => s.id);
+    const preferences = sessions?.[0]?.preferences ?? {};
 
     let totalCampaigns = 0;
     let totalSegments = 0;
@@ -50,9 +51,45 @@ export async function GET(req: Request) {
       totalCampaigns,
       totalSegments,
       rateLimit,
+      preferences,
     });
   } catch (err) {
     console.error("Profile error:", err);
+    return Response.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return Response.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const preferences = body.preferences;
+    if (!preferences || typeof preferences !== "object") {
+      return Response.json({ error: "Invalid preferences" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+    if (!db) return Response.json({ error: "Service unavailable" }, { status: 503 });
+
+    const { data, error } = await db
+      .from("sessions")
+      .update({ preferences })
+      .eq("user_id", user.id)
+      .select("preferences")
+      .single();
+
+    if (error) {
+      console.error("Preferences update error:", error);
+      return Response.json({ error: "Update failed" }, { status: 500 });
+    }
+
+    return Response.json({ preferences: data.preferences });
+  } catch (err) {
+    console.error("PATCH profile error:", err);
     return Response.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

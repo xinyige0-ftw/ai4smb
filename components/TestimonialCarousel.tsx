@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface Review {
   id: string;
@@ -51,6 +52,7 @@ export default function TestimonialCarousel() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("landing");
 
   useEffect(() => {
     fetch("/api/reviews")
@@ -80,7 +82,7 @@ export default function TestimonialCarousel() {
               Testimonials
             </h2>
             <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-              What business owners are saying
+              {t("testimonialTitle")}
             </p>
           </div>
           {reviews.length > 0 && (
@@ -93,7 +95,7 @@ export default function TestimonialCarousel() {
 
         {reviews.length === 0 ? (
           <p className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
-            Be the first to share your experience!
+            {t("testimonialEmpty")}
           </p>
         ) : (
           <div className="relative">
