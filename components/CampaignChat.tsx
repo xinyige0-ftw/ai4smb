@@ -28,6 +28,12 @@ const INITIAL_GREETING: Message = {
     "Hey! Tell me about your business and what you want to achieve — I'll build you a campaign.\n\nExample: \"I run a coffee shop and want more morning customers.\"",
 };
 
+const STARTER_CHIPS = [
+  "I run a coffee shop",
+  "I'm a freelance designer",
+  "I own a restaurant",
+];
+
 const REFINEMENT_CHIPS = [
   "Make it shorter",
   "Different tone",
@@ -317,10 +323,10 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
         </div>
       )}
 
-      {/* Refinement chips */}
-      {hasGenerated && !loading && (
+      {/* Suggestion chips */}
+      {!loading && (
         <div className="flex gap-2 overflow-x-auto pb-2 pt-1">
-          {REFINEMENT_CHIPS.map((chip) => (
+          {(hasGenerated ? REFINEMENT_CHIPS : messages.length <= 1 ? STARTER_CHIPS : []).map((chip) => (
             <button
               key={chip}
               onClick={() => sendMessage(chip)}
