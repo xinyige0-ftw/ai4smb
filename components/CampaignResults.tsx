@@ -56,7 +56,7 @@ export default function CampaignResults({
   const [shareCopied, setShareCopied] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-  const [userInfo, setUserInfo] = useState<{ email: string; name: string; businessType: string }>({ email: "", name: "", businessType: "" });
+  const [userInfo, setUserInfo] = useState<{ email: string; name: string; businessType: string; location: string }>({ email: "", name: "", businessType: "", location: "" });
 
   useEffect(() => {
     const prefs = (() => { try { return JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}"); } catch { return {}; } })();
@@ -70,6 +70,7 @@ export default function CampaignResults({
         email: u?.email ?? "",
         name: u?.user_metadata?.full_name ?? u?.user_metadata?.name ?? "",
         businessType: prefs.businessType ?? "",
+        location: prefs.location ?? "",
       });
     });
   }, []);
@@ -237,6 +238,7 @@ export default function CampaignResults({
           userEmail={userInfo.email}
           userName={userInfo.name}
           businessType={userInfo.businessType}
+          location={userInfo.location}
         />
       )}
     </div>

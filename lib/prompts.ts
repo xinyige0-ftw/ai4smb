@@ -45,6 +45,7 @@ export interface GenerateInput {
   businessType: string;
   businessTypeCustom?: string;
   businessName?: string;
+  location?: string;
   goal: string;
   budget: string;
   channels: string[];
@@ -101,6 +102,7 @@ export function buildPrompt(input: GenerateInput, locale?: string): string {
 
   return `
 Business: ${name} (${businessLabel})
+${input.location ? `Location: ${input.location}` : ""}
 Goal: ${goalLabel}
 ${input.details ? `Additional context: ${input.details}` : ""}
 

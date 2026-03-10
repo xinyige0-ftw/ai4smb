@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data, error } = await db
     .from("reviews")
-    .select("id, rating, nps_score, text, business_type, display_name, is_anonymous, tools_used, campaigns_count, segments_count, created_at")
+    .select("id, rating, nps_score, text, business_type, location, display_name, is_anonymous, tools_used, campaigns_count, segments_count, created_at")
     .eq("approved", true)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      rating, npsScore, text, businessType, displayName, email,
+      rating, npsScore, text, businessType, location, displayName, email,
       isAnonymous, consentDisplay, consentContact,
       toolsUsed, campaignsCount, segmentsCount, anonId,
     } = body as {
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
       npsScore?: number | null;
       text?: string;
       businessType?: string;
+      location?: string;
       displayName?: string;
       email?: string;
       isAnonymous?: boolean;
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         nps_score: validNps,
         text: (text || "").slice(0, 1000),
         business_type: businessType || "",
+        location: (location || "").slice(0, 200),
         display_name: anonymous ? "" : (displayName || "").slice(0, 100),
         email: anonymous ? "" : (email || "").slice(0, 200),
         is_anonymous: anonymous,

@@ -97,6 +97,7 @@
     "continue": "Continue",
     "addBusinessName": "+ Add your business name (optional)",
     "businessNamePlaceholder": "e.g. Sunrise Bakery",
+    "locationPlaceholder": "City or region, e.g. San Francisco, CA",
     "step2Title": "What do you need?",
     "step2Subtitle": "Pick a goal, then hit create",
     "budgetLabel": "Budget",

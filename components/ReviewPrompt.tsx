@@ -10,6 +10,7 @@ export interface ReviewSubmitData {
   displayName: string;
   email: string;
   businessType: string;
+  location: string;
   isAnonymous: boolean;
   consentDisplay: boolean;
   consentContact: boolean;
@@ -22,6 +23,7 @@ interface ReviewPromptProps {
   onClose: () => void;
   onSubmit: (data: ReviewSubmitData) => void;
   businessType?: string;
+  location?: string;
   toolsUsed?: string[];
   campaignsCount?: number;
   segmentsCount?: number;
@@ -45,6 +47,7 @@ export default function ReviewPrompt({
   onClose,
   onSubmit,
   businessType = "",
+  location = "",
   toolsUsed = [],
   campaignsCount = 0,
   segmentsCount = 0,
@@ -74,6 +77,7 @@ export default function ReviewPrompt({
       displayName: isAnonymous ? "" : displayName,
       email: isAnonymous ? "" : email,
       businessType,
+      location,
       isAnonymous,
       consentDisplay,
       consentContact,
@@ -130,6 +134,11 @@ export default function ReviewPrompt({
               {businessType && (
                 <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                   {businessType}
+                </span>
+              )}
+              {location && (
+                <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                  📍 {location}
                 </span>
               )}
               {campaignsCount > 0 && (

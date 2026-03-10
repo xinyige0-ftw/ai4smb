@@ -28,6 +28,7 @@ export default function GenerateWizard() {
   const [businessType, setBusinessType] = useState("");
   const [businessTypeCustom, setBusinessTypeCustom] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [location, setLocation] = useState("");
   const [showName, setShowName] = useState(false);
 
   const [goal, setGoal] = useState("");
@@ -43,6 +44,7 @@ export default function GenerateWizard() {
       const prefs = JSON.parse(raw);
       if (prefs.businessType) setBusinessType(prefs.businessType);
       if (prefs.channels?.length) setChannels(prefs.channels);
+      if (prefs.location) setLocation(prefs.location);
     } catch { /* ignore corrupt data */ }
   }, []);
 
@@ -69,6 +71,7 @@ export default function GenerateWizard() {
       businessType,
       businessTypeCustom: businessType === "other" ? businessTypeCustom : undefined,
       businessName: businessName || undefined,
+      location: location || undefined,
       goal,
       budget,
       channels,
@@ -196,13 +199,22 @@ export default function GenerateWizard() {
             </button>
           )}
           {showName && (
-            <input
-              type="text"
-              placeholder={t("businessNamePlaceholder")}
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              className="mt-4 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            <>
+              <input
+                type="text"
+                placeholder={t("businessNamePlaceholder")}
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                className="mt-4 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              <input
+                type="text"
+                placeholder={t("locationPlaceholder")}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            </>
           )}
         </div>
       )}

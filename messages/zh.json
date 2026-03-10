@@ -97,6 +97,7 @@
     "continue": "继续",
     "addBusinessName": "+ 添加你的店名（可选）",
     "businessNamePlaceholder": "比如 日出烘焙",
+    "locationPlaceholder": "城市或地区，比如 上海、北京",
     "step2Title": "你想要什么？",
     "step2Subtitle": "选个目标，然后点生成",
     "budgetLabel": "预算",
