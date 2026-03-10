@@ -19,6 +19,15 @@ interface CampaignData {
   thisWeek?: { day: string; action: string; why: string }[];
 }
 
+interface AssetData {
+  type: "asset";
+  assetType: string;
+  title: string;
+  content: string;
+  details?: Record<string, unknown>;
+  tips?: string;
+}
+
 interface CampaignChatProps {
   onBack: () => void;
 }
@@ -40,6 +49,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [preferredVoice, setPreferredVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
+  const [assets, setAssets] = useState<AssetData[]>([]);
   const [dynamicChips, setDynamicChips] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -150,11 +160,14 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
           { role: "assistant", content: msg },
         ]);
 
-        const jsonMatch = msg.match(/```json\s*([\s\S]*?)```/);
-        if (jsonMatch) {
+        const jsonBlocks = msg.match(/```json\s*([\s\S]*?)```/g) || [];
+        for (const block of jsonBlocks) {
+          const inner = block.replace(/```json\s*/, "").replace(/```$/, "");
           try {
-            const parsed = JSON.parse(jsonMatch[1]);
-            if (parsed.channels) {
+            const parsed = JSON.parse(inner);
+            if (parsed.type === "asset" && parsed.content) {
+              setAssets((prev) => [...prev, parsed as AssetData]);
+            } else if (parsed.channels) {
               setCampaign(parsed);
             }
           } catch {
@@ -235,6 +248,58 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
 
   function stripJson(text: string): string {
     return text.replace(/```json[\s\S]*?```/g, "").trim();
+  }
+
+  const ASSET_ICONS: Record<string, string> = {
+    coupon: "🎟️", flyer: "📄", email: "✉️", social_post: "📱",
+    loyalty_card: "💳", promo: "🏷️", invite: "📨", referral: "🤝",
+    thank_you: "💌", other: "📋",
+  };
+
+  function AssetCard({ asset }: { asset: AssetData }) {
+    const [copied, setCopied] = useState(false);
+    const icon = ASSET_ICONS[asset.assetType] || ASSET_ICONS.other;
+
+    function copyContent() {
+      const text = asset.content + (asset.details
+        ? "\n\n" + Object.entries(asset.details).map(([k, v]) => `${k}: ${v}`).join("\n")
+        : "");
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+
+    return (
+      <div className="my-2 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex items-center gap-2 border-b border-zinc-100 bg-zinc-50 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-800/50">
+          <span className="text-lg">{icon}</span>
+          <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{asset.title}</span>
+          <button
+            onClick={copyContent}
+            className="ml-auto rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-500 dark:hover:text-blue-400"
+          >
+            {copied ? "✓ Copied" : "Copy"}
+          </button>
+        </div>
+        <div className="px-4 py-3">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{asset.content}</p>
+          {asset.details && Object.keys(asset.details).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {Object.entries(asset.details).map(([key, val]) => (
+                <span key={key} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                  <span className="capitalize text-blue-500 dark:text-blue-400">{key.replace(/([A-Z])/g, " $1").trim()}:</span> {String(val)}
+                </span>
+              ))}
+            </div>
+          )}
+          {asset.tips && (
+            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+              💡 {asset.tips}
+            </p>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const hasGenerated = campaign !== null;
@@ -324,11 +389,21 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
             onRegenerate={() => sendMessage("Regenerate the entire campaign")}
             onStartOver={() => {
               setCampaign(null);
+              setAssets([]);
               setMessages([greeting]);
             }}
             onAdjust={() => inputRef.current?.focus()}
             loading={loading}
           />
+        </div>
+      )}
+
+      {/* Generated assets (coupons, flyers, etc.) */}
+      {assets.length > 0 && (
+        <div className="space-y-2 pb-2">
+          {assets.map((asset, i) => (
+            <AssetCard key={`${asset.assetType}-${i}`} asset={asset} />
+          ))}
         </div>
       )}
 
