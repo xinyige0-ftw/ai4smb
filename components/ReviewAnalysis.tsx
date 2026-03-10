@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocale } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
@@ -16,6 +16,21 @@ interface SegmentData {
   dataQuality: string;
 }
 
+interface PlaceResult {
+  placeId: string;
+  name: string;
+  address: string;
+  rating: number;
+  totalRatings: number;
+}
+
+interface PlaceReview {
+  author: string;
+  rating: number;
+  text: string;
+  time: string;
+}
+
 export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
   const locale = useLocale();
   const [reviewText, setReviewText] = useState("");
@@ -24,6 +39,55 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState<SegmentData | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [fetchingReviews, setFetchingReviews] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<{ name: string; rating: number; totalRatings: number } | null>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleSearch(query: string) {
+    setSearchQuery(query);
+    setSearchResults([]);
+    setSelectedPlace(null);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (query.length < 3) return;
+
+    searchTimeout.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data.results) setSearchResults(data.results);
+      } catch { /* silent */ }
+      setSearching(false);
+    }, 400);
+  }
+
+  async function handleSelectPlace(place: PlaceResult) {
+    setSearchResults([]);
+    setSearchQuery(place.name);
+    setSelectedPlace({ name: place.name, rating: place.rating, totalRatings: place.totalRatings });
+    setFetchingReviews(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/places/reviews?placeId=${encodeURIComponent(place.placeId)}`);
+      const data = await res.json();
+      if (data.reviews?.length) {
+        const formatted = data.reviews
+          .map((r: PlaceReview) => `${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)} (${r.author}, ${r.time})\n"${r.text}"`)
+          .join("\n\n");
+        setReviewText(formatted);
+      } else {
+        setError("No reviews found for this business.");
+      }
+    } catch {
+      setError("Failed to fetch reviews. You can still paste them manually.");
+    }
+    setFetchingReviews(false);
+  }
 
   async function handleAnalyze() {
     if (!reviewText.trim()) return;
@@ -80,24 +144,67 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
         Paste your Google or Yelp reviews — the AI finds patterns in what customers say
       </p>
 
-      {/* How to get reviews */}
-      <div className="mb-5 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">How to copy your reviews</p>
-        <div className="space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-          <p>🔍 <strong>Google:</strong> Search your business → Reviews tab → copy & paste text</p>
-          <p>⭐ <strong>Yelp:</strong> Your business page → Reviews → copy & paste text</p>
-          <p>💡 Even 10-20 reviews are enough. More is better.</p>
+      {/* Google Places search */}
+      <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+        <p className="mb-2 text-sm font-semibold text-blue-800 dark:text-blue-200">
+          🔍 Find your business on Google
+        </p>
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Type your business name and city..."
+            className="w-full rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-blue-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+          />
+          {searching && (
+            <div className="absolute right-3 top-2.5">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+            </div>
+          )}
+          {searchResults.length > 0 && (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+              {searchResults.map((p) => (
+                <button
+                  key={p.placeId}
+                  onClick={() => handleSelectPlace(p)}
+                  className="flex w-full flex-col gap-0.5 border-b border-zinc-100 px-4 py-3 text-left transition-colors last:border-0 hover:bg-blue-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
+                >
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.name}</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {p.address}
+                    {p.rating ? ` · ⭐ ${p.rating} (${p.totalRatings} reviews)` : ""}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+        {fetchingReviews && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-300">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+            Pulling reviews from Google...
+          </div>
+        )}
+        {selectedPlace && !fetchingReviews && reviewText && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+            ✓ Found {reviewText.split("\n\n").length} reviews for {selectedPlace.name}
+          </div>
+        )}
+        <p className="mt-2 text-xs text-blue-600/70 dark:text-blue-400/70">
+          We&apos;ll pull up to 10 Google reviews automatically. Paste more below for deeper insights.
+        </p>
       </div>
 
+      {/* Manual paste fallback */}
       <div className="flex items-start gap-1.5">
         <textarea
-          placeholder="Paste your reviews here...
+          placeholder="Reviews will appear here after searching, or paste manually...
 
 Example:
-★★★★★ 'Best coffee in the neighborhood! The baristas remember my order and it always feels like home. Bit pricey but worth it for the quality.'
+★★★★★ 'Best coffee in the neighborhood! The baristas remember my order.'
 
-★★★★☆ 'Quick stop on my work commute. Usually grab a latte and a croissant. Never crowded in the mornings which I love.'"
+★★★★☆ 'Quick stop on my work commute. Usually grab a latte and a croissant.'"
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
           rows={10}
