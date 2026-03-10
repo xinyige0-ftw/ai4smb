@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { BUSINESS_TYPES, GOALS, BUDGETS, CHANNELS, type GenerateInput } from "@/lib/prompts";
 import CampaignResults from "./CampaignResults";
 
@@ -18,6 +18,7 @@ export default function GenerateWizard() {
   const t = useTranslations("generate");
   const tb = useTranslations("businesses");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,7 +84,7 @@ export default function GenerateWizard() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anonId, input }),
+        body: JSON.stringify({ anonId, input, locale }),
       });
 
       const data = await res.json();

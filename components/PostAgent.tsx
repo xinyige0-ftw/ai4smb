@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ChannelData {
   channel: string;
@@ -34,6 +34,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 export default function PostAgent({ channels, businessContext }: PostAgentProps) {
   const t = useTranslations("postAgent");
+  const locale = useLocale();
   const [formatted, setFormatted] = useState<Record<string, FormattedPost>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<Record<string, boolean>>({});
@@ -49,6 +50,7 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
           channelContent: ch,
           platform: ch.channel,
           businessContext,
+          locale,
         }),
       });
 

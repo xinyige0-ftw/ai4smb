@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
 import VoiceInput from "./VoiceInput";
@@ -16,6 +17,7 @@ interface SegmentData {
 }
 
 export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
+  const locale = useLocale();
   const [socialContent, setSocialContent] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,6 +43,7 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
           mode: "social",
           socialContent,
           businessType: businessType || undefined,
+          locale,
         }),
       });
       const data = await res.json();

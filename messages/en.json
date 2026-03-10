@@ -131,7 +131,9 @@
     "channel_tiktok": "TikTok",
     "channel_sms": "SMS",
     "channel_xiaohongshu": "小红书 RedNote",
-    "channel_wechat": "微信 WeChat"
+    "channel_wechat": "微信 WeChat",
+    "leaveRating": "Rate this",
+    "thanksFeedback": "Thanks for your feedback!"
   },
   "chat": {
     "title": "AI Strategist",

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { createBrowserClient } from "@supabase/ssr";
 import ReviewPrompt, { type ReviewSubmitData } from "./ReviewPrompt";
 import { formatSegmentReport, downloadText, copyText } from "@/lib/export";
 
@@ -268,6 +269,23 @@ export default function SegmentResults({
   const [shareCopied, setShareCopied] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [userInfo, setUserInfo] = useState<{ email: string; name: string; businessType: string }>({ email: "", name: "", businessType: "" });
+
+  useEffect(() => {
+    const prefs = (() => { try { return JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}"); } catch { return {}; } })();
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data?.user;
+      setUserInfo({
+        email: u?.email ?? "",
+        name: u?.user_metadata?.full_name ?? u?.user_metadata?.name ?? "",
+        businessType: prefs.businessType ?? "",
+      });
+    });
+  }, []);
 
   function handleDownload() {
     const text = formatSegmentReport(result, metaLabel);
@@ -294,6 +312,7 @@ export default function SegmentResults({
     }
     setShowReview(false);
     setReviewSubmitted(true);
+    setTimeout(() => setReviewSubmitted(false), 4000);
   }
 
   async function handleShare() {
@@ -435,26 +454,20 @@ export default function SegmentResults({
         </button>
       </div>
 
-      {/* Review prompt */}
-      <div className="mt-8 rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-5 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
-        {reviewSubmitted ? (
-          <p className="text-sm font-medium text-green-600 dark:text-green-400">
-            {"✓ "}{t("thanksFeedback")}
-          </p>
-        ) : (
-          <>
-            <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-              {t("howWasAnalysis")}
-            </p>
-            <button
-              onClick={() => setShowReview(true)}
-              className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              {"⭐ "}{t("leaveRating")}
-            </button>
-          </>
-        )}
-      </div>
+      {/* Floating review button */}
+      {!reviewSubmitted && (
+        <button
+          onClick={() => setShowReview(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95"
+        >
+          {"⭐ "}{t("leaveRating")}
+        </button>
+      )}
+      {reviewSubmitted && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {"✓ "}{t("thanksFeedback")}
+        </div>
+      )}
 
       {showReview && (
         <ReviewPrompt
@@ -462,6 +475,9 @@ export default function SegmentResults({
           onSubmit={handleReviewSubmit}
           toolsUsed={[toolUsed ?? "segment_csv"]}
           segmentsCount={result.segments.length}
+          userEmail={userInfo.email}
+          userName={userInfo.name}
+          businessType={userInfo.businessType}
         />
       )}
     </div>

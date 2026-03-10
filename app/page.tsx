@@ -210,9 +210,17 @@ export default function Home() {
       <footer className="border-t border-zinc-100 bg-white px-4 py-8 dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
           <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{c("appName")}</span>
-          <p className="text-xs text-zinc-400 dark:text-zinc-600">
-            {t("footerDesc")}
-          </p>
+          <div className="flex flex-col items-center gap-1 sm:items-end">
+            <p className="text-xs text-zinc-400 dark:text-zinc-600">
+              {t("footerDesc")}
+            </p>
+            <a
+              href="mailto:info@ai4smbhub.com"
+              className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              info@ai4smbhub.com
+            </a>
+          </div>
         </div>
       </footer>
     </main>

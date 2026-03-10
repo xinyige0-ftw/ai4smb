@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import { CHAT_SYSTEM_PROMPT } from "@/lib/campaign-chat-prompts";
+import { getChatSystemPrompt } from "@/lib/campaign-chat-prompts";
 import { getUser } from "@/lib/auth";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
@@ -7,9 +7,10 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, anonId } = body as {
+    const { messages, anonId, locale } = body as {
       messages: { role: "user" | "assistant"; content: string }[];
       anonId?: string;
+      locale?: string;
     };
 
     if (!messages || messages.length === 0) {
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      messages: [{ role: "system", content: CHAT_SYSTEM_PROMPT }, ...messages],
+      messages: [{ role: "system", content: getChatSystemPrompt(locale) }, ...messages],
       temperature: 0.8,
       max_tokens: 3000,
     });

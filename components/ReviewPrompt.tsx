@@ -26,6 +26,7 @@ interface ReviewPromptProps {
   campaignsCount?: number;
   segmentsCount?: number;
   userEmail?: string;
+  userName?: string;
 }
 
 function StarIcon({ filled }: { filled: boolean }) {
@@ -48,17 +49,19 @@ export default function ReviewPrompt({
   campaignsCount = 0,
   segmentsCount = 0,
   userEmail = "",
+  userName = "",
 }: ReviewPromptProps) {
   const t = useTranslations("review");
+  const hasUserInfo = !!(userEmail || userName);
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [npsScore, setNpsScore] = useState<number | null>(null);
   const [hoveredNps, setHoveredNps] = useState<number | null>(null);
   const [text, setText] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState(userName);
   const [email, setEmail] = useState(userEmail);
-  const [isAnonymous, setIsAnonymous] = useState(true);
-  const [consentDisplay, setConsentDisplay] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(!hasUserInfo);
+  const [consentDisplay, setConsentDisplay] = useState(hasUserInfo);
   const [consentContact, setConsentContact] = useState(false);
 
   const maxChars = 500;

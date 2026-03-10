@@ -1,4 +1,4 @@
-export const CHAT_SYSTEM_PROMPT = `You are a friendly marketing strategist for small businesses. Help owners brainstorm and create campaigns through conversation.
+const CHAT_SYSTEM_PROMPT_BASE = `You are a friendly marketing strategist for small businesses. Help owners brainstorm and create campaigns through conversation.
 
 Rules:
 - Be concise: 2-3 short paragraphs max per response
@@ -33,8 +33,18 @@ Before the JSON, add a brief 1-2 sentence intro. After the JSON, do NOT add expl
 
 When refining, regenerate the FULL updated JSON block.`;
 
+export const CHAT_SYSTEM_PROMPT = CHAT_SYSTEM_PROMPT_BASE;
+
+export function getChatSystemPrompt(locale?: string): string {
+  if (locale === "zh") {
+    return CHAT_SYSTEM_PROMPT_BASE + "\n\nIMPORTANT: The user prefers Simplified Chinese (简体中文). You MUST respond entirely in Chinese — all conversation, strategy text, channel content, captions, headlines, email copy, action plans, and descriptions must be in Chinese. Only keep brand names and technical terms in English. JSON keys stay in English but all JSON string values must be in Chinese.";
+  }
+  return CHAT_SYSTEM_PROMPT_BASE;
+}
+
 export function buildChatMessages(
   history: { role: "user" | "assistant"; content: string }[],
+  locale?: string,
 ): { role: "system" | "user" | "assistant"; content: string }[] {
-  return [{ role: "system", content: CHAT_SYSTEM_PROMPT }, ...history];
+  return [{ role: "system", content: getChatSystemPrompt(locale) }, ...history];
 }

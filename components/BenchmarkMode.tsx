@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import SegmentResults from "./SegmentResults";
 
@@ -19,6 +19,7 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
   const t = useTranslations("benchmark");
   const tb = useTranslations("businesses");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const [businessType, setBusinessType] = useState("");
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,6 +44,7 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
           anonId,
           mode: "benchmark",
           input: { businessType, location: location || undefined },
+          locale,
         }),
       });
       const data = await res.json();

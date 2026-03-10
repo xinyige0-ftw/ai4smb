@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import {
   CUSTOMER_TYPES,
@@ -30,6 +30,7 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
   const t = useTranslations("interview");
   const tb = useTranslations("businesses");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -75,7 +76,7 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
       const res = await fetch("/api/segment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anonId, mode: "interview", answers }),
+        body: JSON.stringify({ anonId, mode: "interview", answers, locale }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || tc("errorGeneric")); return; }

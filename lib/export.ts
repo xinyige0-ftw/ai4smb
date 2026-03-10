@@ -1,6 +1,6 @@
 const DIVIDER = "═".repeat(48);
 const THIN = "─".repeat(48);
-const SITE = "AI4SMB Insights · ai4smb-web.vercel.app · Free";
+const SITE = "AI4SMB Insights · ai4smbhub.com · Free";
 
 function dateStamp(locale?: string) {
   return new Date().toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", {

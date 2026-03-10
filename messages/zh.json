@@ -131,7 +131,9 @@
     "channel_tiktok": "TikTok",
     "channel_sms": "短信",
     "channel_xiaohongshu": "小红书",
-    "channel_wechat": "微信"
+    "channel_wechat": "微信",
+    "leaveRating": "给个评价",
+    "thanksFeedback": "感谢你的反馈！"
   },
   "chat": {
     "title": "AI营销顾问",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useLocale } from "next-intl";
 import Papa from "papaparse";
 import SegmentResults from "./SegmentResults";
 import { SAMPLE_HEADERS, SAMPLE_ROWS } from "@/lib/sample-data";
@@ -22,6 +23,7 @@ interface SegmentData {
 }
 
 export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) {
+  const locale = useLocale();
   const [step, setStep] = useState<"upload" | "preview" | "results">("upload");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -108,7 +110,7 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
       const res = await fetch("/api/segment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anonId, summary, businessContext: businessContext || undefined }),
+        body: JSON.stringify({ anonId, summary, businessContext: businessContext || undefined, locale }),
       });
 
       const data = await res.json();

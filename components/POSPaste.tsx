@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import Papa from "papaparse";
 import { summarizeCsv, stripPiiFromSummary } from "@/lib/segment-prompts";
 import SegmentResults from "./SegmentResults";
@@ -17,6 +18,7 @@ interface SegmentData {
 }
 
 export default function POSPaste({ onBack }: { onBack: () => void }) {
+  const locale = useLocale();
   const [pastedText, setPastedText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +64,7 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
       const res = await fetch("/api/segment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anonId, mode: "csv", summary }),
+        body: JSON.stringify({ anonId, mode: "csv", summary, locale }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Something went wrong."); return; }

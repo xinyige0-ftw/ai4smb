@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { TEACH_ME_QUESTIONS, type TeachMeQA } from "@/lib/insight-prompts";
 import SegmentResults from "./SegmentResults";
 import VoiceInput from "./VoiceInput";
@@ -16,6 +17,7 @@ interface SegmentData {
 }
 
 export default function TeachMeMode({ onBack }: { onBack: () => void }) {
+  const locale = useLocale();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(TEACH_ME_QUESTIONS.length).fill(""));
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,7 @@ export default function TeachMeMode({ onBack }: { onBack: () => void }) {
       const res = await fetch("/api/segment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anonId, mode: "teachme", conversation: { qas } }),
+        body: JSON.stringify({ anonId, mode: "teachme", conversation: { qas }, locale }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Something went wrong."); return; }
