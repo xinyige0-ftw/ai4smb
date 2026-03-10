@@ -29,8 +29,6 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
 
   const greeting: Message = { role: "assistant", content: t("greeting") };
   const starterChips = [t("starterChip1"), t("starterChip2"), t("starterChip3")];
-  const midChips = [t("midChip1"), t("midChip2"), t("midChip3")];
-  const refinementChips = [t("refinementChip1"), t("refinementChip2"), t("refinementChip3")];
 
   const [messages, setMessages] = useState<Message[]>([greeting]);
   const [input, setInput] = useState("");
@@ -42,6 +40,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [preferredVoice, setPreferredVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
+  const [dynamicChips, setDynamicChips] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,12 +133,24 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
       const data = await res.json();
 
       if (data.message) {
+        let msg: string = data.message;
+
+        // Parse [CHIPS] from end of message
+        const chipsMatch = msg.match(/\[CHIPS:\s*(.+)\]\s*$/);
+        if (chipsMatch) {
+          try {
+            const parsed = chipsMatch[1].match(/"([^"]+)"/g)?.map((s: string) => s.replace(/"/g, "")) || [];
+            if (parsed.length > 0) setDynamicChips(parsed);
+          } catch { /* ignore */ }
+          msg = msg.replace(/\[CHIPS:\s*.+\]\s*$/, "").trim();
+        }
+
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: data.message },
+          { role: "assistant", content: msg },
         ]);
 
-        const jsonMatch = data.message.match(/```json\s*([\s\S]*?)```/);
+        const jsonMatch = msg.match(/```json\s*([\s\S]*?)```/);
         if (jsonMatch) {
           try {
             const parsed = JSON.parse(jsonMatch[1]);
@@ -151,7 +162,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
           }
         }
 
-        const plainText = data.message.replace(/```json[\s\S]*?```/g, "").trim();
+        const plainText = msg.replace(/```json[\s\S]*?```/g, "").replace(/\[CHIPS:.*\]/g, "").trim();
         if (plainText) speakText(plainText);
       }
     } catch {
@@ -324,7 +335,7 @@ export default function CampaignChat({ onBack }: CampaignChatProps) {
       {/* Suggestion chips */}
       {!loading && (
         <div className="flex gap-2 overflow-x-auto pb-2 pt-1">
-          {(hasGenerated ? refinementChips : messages.length <= 1 ? starterChips : midChips).map((chip) => (
+          {(messages.length <= 1 ? starterChips : dynamicChips.length > 0 ? dynamicChips : starterChips).map((chip) => (
             <button
               key={chip}
               onClick={() => sendMessage(chip)}
