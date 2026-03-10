@@ -28,21 +28,18 @@ async function tryTogether(prompt: string, width: number, height: number): Promi
   }
 }
 
-async function tryHuggingFace(prompt: string, width: number, height: number): Promise<string | null> {
+async function tryHuggingFace(prompt: string): Promise<string | null> {
   if (!HF_KEY) return null;
   try {
     const res = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
+      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${HF_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { width: Math.min(width, 1024), height: Math.min(height, 1024) },
-        }),
+        body: JSON.stringify({ inputs: prompt }),
         signal: AbortSignal.timeout(30000),
       },
     );
@@ -80,8 +77,8 @@ export async function POST(req: Request) {
       return Response.json({ image: togetherUrl, source: "together" });
     }
 
-    // Fallback to Hugging Face (higher quality, limited free tier)
-    const hfUrl = await tryHuggingFace(enhanced, width, height);
+    // Fallback to Hugging Face (free tier, new router endpoint)
+    const hfUrl = await tryHuggingFace(enhanced);
     if (hfUrl) {
       return Response.json({ image: hfUrl, source: "huggingface" });
     }
