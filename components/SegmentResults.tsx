@@ -74,17 +74,33 @@ const TIER_COLORS: Record<string, string> = {
   low: "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
 };
 
-function TierBadge({ label, value }: { label: string; value?: string }) {
+const PROPENSITY_EXPLAIN: Record<string, string> = {
+  high: "Very likely to buy",
+  medium: "May need a nudge",
+  low: "Harder to convert",
+};
+
+const LTV_EXPLAIN: Record<string, string> = {
+  high: "Big spenders",
+  medium: "Average spend",
+  low: "Budget-conscious",
+};
+
+function TierBadge({ label, value, explain }: { label: string; value?: string; explain?: Record<string, string> }) {
   if (!value) return null;
+  const tip = explain?.[value] || "";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${TIER_COLORS[value] || TIER_COLORS.medium}`}>
-      {label}: {value}
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${TIER_COLORS[value] || TIER_COLORS.medium}`}
+      title={tip}
+    >
+      {label}: {value}{tip ? ` · ${tip}` : ""}
     </span>
   );
 }
 
 function SegmentCard({ segment }: { segment: Segment }) {
-  const [recsExpanded, setRecsExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [reasoningExpanded, setReasoningExpanded] = useState(false);
   const router = useRouter();
   const t = useTranslations("segmentResults");
@@ -118,9 +134,9 @@ function SegmentCard({ segment }: { segment: Segment }) {
         <div className="ml-4 flex flex-col items-end gap-1">
           <div className={`text-2xl font-bold ${c.text}`}>{segment.percentage}%</div>
           <div className="text-xs text-zinc-500 dark:text-zinc-400">{t("customers", { size: segment.size })}</div>
-          <div className="flex gap-1">
-            <TierBadge label={t("propensity")} value={segment.propensityScore} />
-            <TierBadge label={t("ltv")} value={segment.lifetimeValueTier} />
+          <div className="flex flex-col gap-1">
+            <TierBadge label={t("propensity")} value={segment.propensityScore} explain={PROPENSITY_EXPLAIN} />
+            <TierBadge label={t("ltv")} value={segment.lifetimeValueTier} explain={LTV_EXPLAIN} />
           </div>
         </div>
       </div>
@@ -145,110 +161,125 @@ function SegmentCard({ segment }: { segment: Segment }) {
         ))}
       </div>
 
-      {/* Where to reach them */}
-      {(segment.bestChannels?.length || segment.avoidChannels?.length) && (
-        <div className="mt-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {t("whereToReach")}
-          </h4>
-          {segment.bestChannels && segment.bestChannels.length > 0 && (
-            <div className="mt-2 space-y-1.5">
-              {segment.bestChannels.map((ch, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <span
-                    className={`mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                      ch.fit === "high"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
-                    }`}
-                  >
-                    {ch.fit}
-                  </span>
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200">{ch.channel}</span>
-                  <span className="text-zinc-500 dark:text-zinc-400">— {ch.reason}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {segment.avoidChannels && segment.avoidChannels.length > 0 && (
-            <div className="mt-2 space-y-1.5">
-              {segment.avoidChannels.map((ch, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <span className="mt-0.5 shrink-0 rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 dark:bg-rose-900 dark:text-rose-300">
-                    {t("avoid")}
-                  </span>
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200">{ch.channel}</span>
-                  <span className="text-zinc-500 dark:text-zinc-400">— {ch.reason}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* What to tell them */}
-      {(segment.messagingAngle || segment.offerSuggestion || segment.toneGuidance) && (
-        <div className="mt-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {t("whatToTell")}
-          </h4>
-          <div className="mt-2 space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300">
-            {segment.messagingAngle && (
-              <p><span className="font-semibold">{t("messageLabel")}</span> {segment.messagingAngle}</p>
-            )}
-            {segment.offerSuggestion && (
-              <p><span className="font-semibold">{t("offerIdea")}</span> {segment.offerSuggestion}</p>
-            )}
-            {segment.toneGuidance && (
-              <p><span className="font-semibold">{t("toneLabel")}</span> {segment.toneGuidance}</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Recommendations (expandable) */}
+      {/* Expand toggle */}
       <button
-        onClick={() => setRecsExpanded(!recsExpanded)}
-        className={`mt-3 text-xs font-semibold ${c.text}`}
+        onClick={() => setExpanded(!expanded)}
+        className={`mt-3 flex items-center gap-1 text-xs font-semibold ${c.text}`}
       >
-        {recsExpanded ? t("hideRecommendations") : t("recommendations", { count: segment.recommendations.length })}
+        {expanded ? "▾ Less detail" : "▸ Channels, messaging & recommendations"}
       </button>
-      {recsExpanded && (
-        <ul className="mt-2 space-y-1.5">
-          {segment.recommendations.map((rec, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-              <span className="mt-0.5 text-xs">→</span>
-              {rec}
-            </li>
-          ))}
-        </ul>
-      )}
 
-      {/* Why this recommendation? (expandable) */}
-      {segment.reasoning && (
-        <>
-          <button
-            onClick={() => setReasoningExpanded(!reasoningExpanded)}
-            className={`mt-2 text-xs font-semibold ${c.text}`}
-          >
-            {reasoningExpanded ? t("hideReasoning") : t("whyThisRecommendation")}
-          </button>
-          {reasoningExpanded && (
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-              {segment.reasoning}
-            </p>
+      {expanded && (
+        <div className="mt-3 space-y-4">
+          {/* Where to reach them */}
+          {(segment.bestChannels?.length || segment.avoidChannels?.length) && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {t("whereToReach")}
+              </h4>
+              {segment.bestChannels && segment.bestChannels.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {segment.bestChannels.map((ch, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <span
+                        className={`mt-0.5 w-7 shrink-0 rounded-full text-center py-0.5 text-[10px] font-bold ${
+                          ch.fit === "high"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                        }`}
+                      >
+                        {ch.fit === "high" ? "✓" : "~"}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200">{ch.channel}</span>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{ch.reason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {segment.avoidChannels && segment.avoidChannels.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {segment.avoidChannels.map((ch, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <span className="mt-0.5 w-7 shrink-0 rounded-full text-center bg-rose-100 py-0.5 text-[10px] font-bold text-rose-700 dark:bg-rose-900 dark:text-rose-300">
+                        ✗
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200">{ch.channel}</span>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{ch.reason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-        </>
-      )}
 
-      {/* Campaign button */}
-      {(segment.bestChannels?.length || segment.messagingAngle) && (
-        <button
-          onClick={handleCampaign}
-          className="mt-4 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-        >
-          {t("turnIntoCampaign")}
-        </button>
+          {/* What to tell them */}
+          {(segment.messagingAngle || segment.offerSuggestion || segment.toneGuidance) && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {t("whatToTell")}
+              </h4>
+              <div className="mt-2 space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+                {segment.messagingAngle && (
+                  <p><span className="font-semibold">{t("messageLabel")}</span> {segment.messagingAngle}</p>
+                )}
+                {segment.offerSuggestion && (
+                  <p><span className="font-semibold">{t("offerIdea")}</span> {segment.offerSuggestion}</p>
+                )}
+                {segment.toneGuidance && (
+                  <p><span className="font-semibold">{t("toneLabel")}</span> {segment.toneGuidance}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {segment.recommendations.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {t("recommendations", { count: segment.recommendations.length })}
+              </h4>
+              <ul className="mt-2 space-y-1">
+                {segment.recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                    <span className="mt-0.5 text-xs">→</span>
+                    {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Why this recommendation? */}
+          {segment.reasoning && (
+            <>
+              <button
+                onClick={() => setReasoningExpanded(!reasoningExpanded)}
+                className={`text-xs font-semibold ${c.text}`}
+              >
+                {reasoningExpanded ? t("hideReasoning") : t("whyThisRecommendation")}
+              </button>
+              {reasoningExpanded && (
+                <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  {segment.reasoning}
+                </p>
+              )}
+            </>
+          )}
+
+          {/* Campaign button */}
+          {(segment.bestChannels?.length || segment.messagingAngle) && (
+            <button
+              onClick={handleCampaign}
+              className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              {t("turnIntoCampaign")}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
