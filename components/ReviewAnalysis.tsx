@@ -47,22 +47,26 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
   const [selectedPlace, setSelectedPlace] = useState<{ name: string; rating: number; totalRatings: number } | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function handleSearch(query: string) {
+  function handleSearchInput(query: string) {
     setSearchQuery(query);
     setSearchResults([]);
     setSelectedPlace(null);
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     if (query.length < 3) return;
 
-    searchTimeout.current = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (data.results) setSearchResults(data.results);
-      } catch { /* silent */ }
-      setSearching(false);
+    searchTimeout.current = setTimeout(() => {
+      doSearch(query);
     }, 400);
+  }
+
+  async function doSearch(query: string) {
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.results) setSearchResults(data.results);
+    } catch { /* silent */ }
+    setSearching(false);
   }
 
   async function handleSelectPlace(place: PlaceResult) {
@@ -153,7 +157,7 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => handleSearchInput(e.target.value)}
             placeholder="Type your business name and city..."
             className="w-full rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-blue-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
           />
