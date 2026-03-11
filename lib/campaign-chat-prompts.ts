@@ -12,11 +12,16 @@ IMPORTANT — Contextual follow-up suggestions:
 At the END of EVERY response (both conversation and campaign), add a line:
 [CHIPS: "suggestion 1", "suggestion 2", "suggestion 3"]
 
-These MUST be specific to the conversation context:
-- After asking about their business: suggest realistic business examples or clarifications
-- After asking about goals: suggest specific goals like "Get 20 new customers this month" or "Fill empty weekday afternoons"
-- After generating a campaign: suggest specific refinements like "Make the Instagram caption punchier" or "Add a weekend promotion" or "Try a different email subject line"
-- NEVER use generic suggestions like "Tell me more" or "Keep going" or "Generate now"
+CRITICAL: Every chip must be written FROM THE USER'S PERSPECTIVE — as something THEY would say or request. Never write chips as questions the AI would ask.
+
+WRONG (AI asking the user): "What's your budget?" or "Would you like to try email?"
+CORRECT (user requesting): "My budget is $200" or "Focus on email marketing"
+
+Examples of good chips at each stage:
+- Early conversation: "I run a bakery in Brooklyn", "My budget is under $300", "I want more foot traffic"
+- Mid conversation: "Focus on Instagram", "I mostly sell to young professionals", "Generate my campaign now"
+- After campaign: "Make the caption shorter", "Add a weekend promo", "Generate a coupon", "Try a different tone"
+- NEVER use generic chips like "Tell me more" or "Keep going"
 
 When generating campaign content, output a JSON block in \`\`\`json ... \`\`\` fences:
 {

@@ -44,6 +44,16 @@ function ContentBlock({ label, value, copiedLabel, copyLabel }: { label: string;
   );
 }
 
+function TimeBadge({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+      <span>🕐</span>
+      <span>{label}:</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
+
 interface ChannelCardProps {
   channel: string;
   why: string;
@@ -78,11 +88,7 @@ function renderChannelContent(channel: string, content: Record<string, unknown>,
               label={t("generateImage")}
             />
           )}
-          {content.bestTime && (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              {t("bestTime")}: {String(content.bestTime)}
-            </p>
-          )}
+          {content.bestTime && <TimeBadge label={t("bestTime")} value={String(content.bestTime)} />}
         </>
       );
     case "facebook":
@@ -163,11 +169,7 @@ function renderChannelContent(channel: string, content: Record<string, unknown>,
               {t("productTags")}: {content.productTags.join(", ")}
             </p>
           )}
-          {content.bestTime && (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              {t("bestTime")}: {String(content.bestTime)}
-            </p>
-          )}
+          {content.bestTime && <TimeBadge label={t("bestTime")} value={String(content.bestTime)} />}
         </>
       );
     case "wechat":
@@ -185,11 +187,7 @@ function renderChannelContent(channel: string, content: Record<string, unknown>,
           {content.miniProgramCta && (
             <ContentBlock label={t("miniProgramCta")} value={String(content.miniProgramCta)} {...cp} />
           )}
-          {content.bestTime && (
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              {t("bestTime")}: {String(content.bestTime)}
-            </p>
-          )}
+          {content.bestTime && <TimeBadge label={t("bestTime")} value={String(content.bestTime)} />}
         </>
       );
     default:
