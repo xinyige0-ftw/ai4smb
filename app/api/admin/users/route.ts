@@ -86,5 +86,42 @@ export async function GET() {
     };
   });
 
-  return Response.json({ users: rows, total: rows.length });
+  // Fetch all reviews with full details
+  const { data: allReviews } = await db
+    .from("reviews")
+    .select("id, session_id, user_id, rating, nps_score, text, business_type, location, display_name, email, is_anonymous, consent_display, consent_contact, tools_used, campaigns_count, segments_count, approved, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  const reviewRows = (allReviews ?? []).map((r) => {
+    const sess = (sessions ?? []).find((s) => s.id === r.session_id);
+    const u = r.user_id ? usersMap[r.user_id] : null;
+    return {
+      reviewId: r.id,
+      rating: r.rating,
+      npsScore: r.nps_score,
+      text: r.text,
+      businessType: r.business_type || sess?.business_type || null,
+      businessName: sess?.business_name || null,
+      location: r.location || sess?.location || null,
+      locale: sess?.locale || "en",
+      displayName: r.display_name || null,
+      email: r.email || u?.email || null,
+      fullName: u?.full_name || null,
+      isAnonymous: r.is_anonymous,
+      consentDisplay: r.consent_display,
+      consentContact: r.consent_contact,
+      toolsUsed: r.tools_used || [],
+      campaignsCount: r.campaigns_count || 0,
+      segmentsCount: r.segments_count || 0,
+      approved: r.approved,
+      reviewDate: r.created_at,
+      sessionCampaigns: sess?.campaigns_count || 0,
+      sessionSegments: sess?.segments_count || 0,
+      sessionChats: sess?.chats_count || 0,
+      userType: sess?.user_id ? "authenticated" : "anonymous",
+    };
+  });
+
+  return Response.json({ users: rows, reviews: reviewRows, total: rows.length });
 }

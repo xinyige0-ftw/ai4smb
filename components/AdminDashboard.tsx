@@ -26,6 +26,32 @@ interface UserRow {
   reviewDate: string | null;
 }
 
+interface ReviewRow {
+  reviewId: string;
+  rating: number;
+  npsScore: number | null;
+  text: string;
+  businessType: string | null;
+  businessName: string | null;
+  location: string | null;
+  locale: string;
+  displayName: string | null;
+  email: string | null;
+  fullName: string | null;
+  isAnonymous: boolean;
+  consentDisplay: boolean;
+  consentContact: boolean;
+  toolsUsed: string[];
+  campaignsCount: number;
+  segmentsCount: number;
+  approved: boolean;
+  reviewDate: string;
+  sessionCampaigns: number;
+  sessionSegments: number;
+  sessionChats: number;
+  userType: "authenticated" | "anonymous";
+}
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <span className="inline-flex gap-0.5">
@@ -64,8 +90,10 @@ function timeAgo(dateStr: string): string {
 
 export default function AdminDashboard() {
   const [rows, setRows] = useState<UserRow[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<"users" | "reviews">("users");
   const [filter, setFilter] = useState<"all" | "authenticated" | "anonymous">("all");
   const [search, setSearch] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -79,7 +107,10 @@ export default function AdminDashboard() {
         }
         return res.json();
       })
-      .then((data) => setRows(data.users || []))
+      .then((data) => {
+        setRows(data.users || []);
+        setReviews(data.reviews || []);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -154,7 +185,129 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Tab switcher */}
+      <div className="mb-4 flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
+        <button
+          onClick={() => setTab("users")}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${tab === "users" ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"}`}
+        >
+          Visitors ({rows.length})
+        </button>
+        <button
+          onClick={() => setTab("reviews")}
+          className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${tab === "reviews" ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"}`}
+        >
+          Reviews ({reviews.length})
+        </button>
+      </div>
+
+      {/* Reviews tab */}
+      {tab === "reviews" && (
+        <>
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search reviews by name, email, business, location..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-400 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 sm:max-w-sm"
+            />
+          </div>
+          <div className="space-y-3">
+            {reviews
+              .filter((r) => {
+                if (!search) return true;
+                const q = search.toLowerCase();
+                return (
+                  r.displayName?.toLowerCase().includes(q) ||
+                  r.email?.toLowerCase().includes(q) ||
+                  r.businessType?.toLowerCase().includes(q) ||
+                  r.location?.toLowerCase().includes(q) ||
+                  r.text?.toLowerCase().includes(q)
+                );
+              })
+              .map((r) => (
+                <div key={r.reviewId} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                  {/* Header: rating + name + date */}
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <StarRating rating={r.rating} />
+                      {r.npsScore !== null && <NpsBadge score={r.npsScore} />}
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}>
+                        {r.approved ? "Approved" : "Pending"}
+                      </span>
+                    </div>
+                    <span className="text-xs text-zinc-400">{new Date(r.reviewDate).toLocaleDateString()} {new Date(r.reviewDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  </div>
+
+                  {/* Review text */}
+                  {r.text && (
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">&ldquo;{r.text}&rdquo;</p>
+                  )}
+
+                  {/* Detail grid */}
+                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-3 md:grid-cols-4">
+                    <div>
+                      <span className="text-zinc-400">Name: </span>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.displayName || "—"}</span>
+                      {r.isAnonymous && <span className="ml-1 text-zinc-400">(anon)</span>}
+                    </div>
+                    <div>
+                      <span className="text-zinc-400">Email: </span>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.email || "—"}</span>
+                    </div>
+                    {r.fullName && (
+                      <div>
+                        <span className="text-zinc-400">Account: </span>
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.fullName}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-zinc-400">Business: </span>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.businessType || "—"}</span>
+                    </div>
+                    {r.businessName && (
+                      <div>
+                        <span className="text-zinc-400">Name: </span>
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.businessName}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-zinc-400">Location: </span>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.location || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400">Language: </span>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">{r.locale === "zh" ? "Chinese" : "English"}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-400">User type: </span>
+                      <span className={`font-medium ${r.userType === "authenticated" ? "text-blue-600" : "text-zinc-500"}`}>{r.userType}</span>
+                    </div>
+                  </div>
+
+                  {/* Activity + consent badges */}
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {r.toolsUsed.map((tool) => (
+                      <span key={tool} className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">{tool}</span>
+                    ))}
+                    {r.sessionCampaigns > 0 && <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">📣 {r.sessionCampaigns} campaigns</span>}
+                    {r.sessionSegments > 0 && <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">🔍 {r.sessionSegments} segments</span>}
+                    {r.sessionChats > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">💬 {r.sessionChats} chats</span>}
+                    {r.consentDisplay && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">✓ Display OK</span>}
+                    {r.consentContact && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">✓ Contact OK</span>}
+                  </div>
+                </div>
+              ))}
+            {reviews.length === 0 && (
+              <p className="py-8 text-center text-sm text-zinc-400">No reviews yet</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Users tab */}
+      {tab === "users" && <>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-2">
           {(["all", "authenticated", "anonymous"] as const).map((f) => (
@@ -303,6 +456,8 @@ export default function AdminDashboard() {
       <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-600">
         Showing {filtered.length} of {rows.length} visitors
       </p>
+      </>}
+
     </div>
   );
 }
