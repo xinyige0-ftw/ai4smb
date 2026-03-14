@@ -64,8 +64,8 @@ export default function ReviewPrompt({
   const [text, setText] = useState("");
   const [displayName, setDisplayName] = useState(userName);
   const [email, setEmail] = useState(userEmail);
-  const [isAnonymous, setIsAnonymous] = useState(!hasUserInfo);
-  const [consentDisplay, setConsentDisplay] = useState(hasUserInfo);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [consentDisplay, setConsentDisplay] = useState(true);
   const [consentContact, setConsentContact] = useState(false);
 
   const maxChars = 500;
