@@ -24,7 +24,12 @@ export async function GET() {
     return Response.json({ reviews: [] });
   }
 
-  return Response.json({ reviews: data ?? [] });
+  const safe = (data ?? []).map((r) => ({
+    ...r,
+    display_name: r.is_anonymous ? "" : r.display_name,
+  }));
+
+  return Response.json({ reviews: safe });
 }
 
 export async function POST(req: Request) {
@@ -90,8 +95,8 @@ export async function POST(req: Request) {
         text: (text || "").slice(0, 1000),
         business_type: businessType || "",
         location: (location || "").slice(0, 200),
-        display_name: anonymous ? "" : (displayName || "").slice(0, 100),
-        email: anonymous ? "" : (email || "").slice(0, 200),
+        display_name: (displayName || "").slice(0, 100),
+        email: (email || "").slice(0, 200),
         is_anonymous: anonymous,
         consent_display: consentDisplay ?? false,
         consent_contact: consentContact ?? false,

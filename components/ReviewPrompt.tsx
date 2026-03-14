@@ -75,8 +75,8 @@ export default function ReviewPrompt({
       rating,
       npsScore,
       text,
-      displayName: isAnonymous ? "" : displayName,
-      email: isAnonymous ? "" : email,
+      displayName,
+      email,
       businessType,
       location: reviewLocation,
       isAnonymous,
@@ -286,35 +286,33 @@ export default function ReviewPrompt({
           </div>
         </div>
 
-        {/* Name and email (visible only when not anonymous) */}
-        {!isAnonymous && (
-          <div className="mb-4 space-y-3">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {t("nameLabel")}
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-                placeholder={t("namePlaceholder")}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {t("emailLabel")}
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-                placeholder={t("emailPlaceholder")}
-              />
-            </div>
+        {/* Name and email — always collected for admin; anonymous toggle controls public display only */}
+        <div className="mb-4 space-y-3">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("nameLabel")}
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+              placeholder={t("namePlaceholder")}
+            />
           </div>
-        )}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("emailLabel")}
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+              placeholder={t("emailPlaceholder")}
+            />
+          </div>
+        </div>
 
         {/* Consent checkboxes */}
         <div className="mb-5 space-y-2.5">
