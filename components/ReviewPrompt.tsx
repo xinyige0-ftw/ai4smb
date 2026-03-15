@@ -64,7 +64,6 @@ export default function ReviewPrompt({
   const [text, setText] = useState("");
   const [displayName, setDisplayName] = useState(userName);
   const [email, setEmail] = useState(userEmail);
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [consentDisplay, setConsentDisplay] = useState(true);
   const [consentContact, setConsentContact] = useState(false);
 
@@ -79,7 +78,7 @@ export default function ReviewPrompt({
       email,
       businessType,
       location: reviewLocation,
-      isAnonymous,
+      isAnonymous: false,
       consentDisplay,
       consentContact,
       toolsUsed,
@@ -257,58 +256,29 @@ export default function ReviewPrompt({
           />
         </div>
 
-        {/* Identity toggle */}
-        <div className="mb-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
-          <p className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {t("identityLabel")}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setIsAnonymous(true)}
-              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-                isAnonymous
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
-              }`}
-            >
-              {t("anonymous")}
-            </button>
-            <button
-              onClick={() => setIsAnonymous(false)}
-              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-                !isAnonymous
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
-              }`}
-            >
-              {t("showName")}
-            </button>
-          </div>
-        </div>
-
-        {/* Name and email — always collected for admin; anonymous toggle controls public display only */}
+        {/* Name and email — required */}
         <div className="mb-4 space-y-3">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {t("nameLabel")}
+              {t("nameLabel")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+              className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 ${!displayName.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-200 dark:border-zinc-700"}`}
               placeholder={t("namePlaceholder")}
             />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {t("emailLabel")}
+              {t("emailLabel")} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+              className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 ${!email.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-200 dark:border-zinc-700"}`}
               placeholder={t("emailPlaceholder")}
             />
           </div>
@@ -324,26 +294,24 @@ export default function ReviewPrompt({
               className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
             />
             <span className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              {!isAnonymous ? t("consentDisplayNamed") : t("consentDisplay")}
+              {t("consentDisplayNamed")}
             </span>
           </label>
-          {!isAnonymous && email && (
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={consentContact}
-                onChange={(e) => setConsentContact(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
-              />
-              <span className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                {t("consentContact")}
-              </span>
-            </label>
-          )}
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consentContact}
+              onChange={(e) => setConsentContact(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
+            />
+            <span className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+              {t("consentContact")}
+            </span>
+          </label>
         </div>
 
         <button
-          disabled={rating === 0 || !reviewLocation.trim()}
+          disabled={rating === 0 || !reviewLocation.trim() || !displayName.trim() || !email.trim()}
           onClick={handleSubmit}
           className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
