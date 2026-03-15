@@ -31,7 +31,7 @@ export default function GenerateWizard() {
   const [location, setLocation] = useState("");
   const [showName, setShowName] = useState(false);
 
-  const [goal, setGoal] = useState("");
+  const [goal, setGoal] = useState("new_customers");
   const [budget, setBudget] = useState("any");
   const [channels, setChannels] = useState<string[]>(["smart"]);
   const [details, setDetails] = useState("");
