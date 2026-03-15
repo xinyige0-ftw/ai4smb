@@ -165,7 +165,7 @@
     "customPlaceholder": "Describe your business in a few words...",
     "continue": "Continue",
     "businessNamePlaceholder": "Business name (optional)",
-    "locationPlaceholder": "City / region (optional)",
+    "locationPlaceholder": "City or region, e.g. New York, NY",
     "backToOptions": "← Back to all options",
     "step2Title": "Tell us about your customers",
     "step2Subtitle": "Answer what you know — skip what you don't",
@@ -207,7 +207,7 @@
     "title": "Industry Benchmarks",
     "subtitle": "Pick your business type and get typical customer segments instantly",
     "disclaimer": "Based on industry patterns, not your specific data",
-    "locationPlaceholder": "City / region (optional, e.g. Austin TX)",
+    "locationPlaceholder": "City or region, e.g. Austin, TX",
     "generating": "Generating benchmarks...",
     "showSegments": "Show industry segments",
     "metaLabel": "Based on industry benchmarks for this business type"
