@@ -67,6 +67,11 @@ export default function GenerateWizard() {
     setCampaign(null);
     setCampaignId(null);
 
+    try {
+      const prev = JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}");
+      localStorage.setItem("ai4smb_prefs", JSON.stringify({ ...prev, businessType, location }));
+    } catch { /* ignore */ }
+
     const input: GenerateInput = {
       businessType,
       businessTypeCustom: businessType === "other" ? businessTypeCustom : undefined,

@@ -31,6 +31,12 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
     if (!businessType) return;
     setLoading(true);
     setError("");
+
+    try {
+      const prev = JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}");
+      localStorage.setItem("ai4smb_prefs", JSON.stringify({ ...prev, businessType, location }));
+    } catch { /* ignore */ }
+
     try {
       const anonId =
         typeof window !== "undefined"

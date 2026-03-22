@@ -99,6 +99,14 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
     if (!reviewText.trim()) return;
     setLoading(true);
     setError("");
+
+    if (businessType) {
+      try {
+        const prev = JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}");
+        localStorage.setItem("ai4smb_prefs", JSON.stringify({ ...prev, businessType }));
+      } catch { /* ignore */ }
+    }
+
     try {
       const anonId =
         typeof window !== "undefined"
