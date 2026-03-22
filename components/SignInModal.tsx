@@ -24,14 +24,18 @@ export default function SignInModal({ onClose }: SignInModalProps) {
     return (typeof window !== "undefined" && window.localStorage.getItem("ai4smb_anon_id")) || "";
   }
 
+  function getRedirectUrl(): string {
+    const anonId = getAnonId();
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "/history";
+    const nextPath = currentPath === "/" ? "/history" : currentPath;
+    return `${window.location.origin}/auth/callback?anon_id=${encodeURIComponent(anonId)}&next=${encodeURIComponent(nextPath)}`;
+  }
+
   async function handleGoogle() {
     setError("");
-    const anonId = getAnonId();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?anon_id=${encodeURIComponent(anonId)}&next=/history`,
-      },
+      options: { redirectTo: getRedirectUrl() },
     });
     if (error) setError(error.message);
   }
@@ -40,12 +44,9 @@ export default function SignInModal({ onClose }: SignInModalProps) {
     if (!email.trim()) return;
     setLoading(true);
     setError("");
-    const anonId = getAnonId();
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?anon_id=${encodeURIComponent(anonId)}&next=/history`,
-      },
+      options: { emailRedirectTo: getRedirectUrl() },
     });
     setLoading(false);
     if (error) { setError(error.message); return; }

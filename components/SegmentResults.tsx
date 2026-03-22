@@ -90,12 +90,14 @@ function TierBadge({ label, value, tipKey, t }: { label: string; value?: string;
   );
 }
 
-function SegmentCard({ segment }: { segment: Segment }) {
-  const [expanded, setExpanded] = useState(false);
+function SegmentCard({ segment, initialExpanded = false }: { segment: Segment; initialExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(initialExpanded);
   const [reasoningExpanded, setReasoningExpanded] = useState(false);
   const router = useRouter();
   const t = useTranslations("segmentResults");
   const c = getColor(segment.color);
+
+  const hasCampaignData = !!(segment.bestChannels?.length || segment.messagingAngle);
 
   function handleCampaign() {
     const prefill = {
@@ -155,11 +157,24 @@ function SegmentCard({ segment }: { segment: Segment }) {
         ))}
       </div>
 
-      {/* Expand toggle */}
+      {/* Expand toggle — styled as a prominent button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`mt-3 flex items-center gap-1 text-xs font-semibold ${c.text}`}
+        className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors ${
+          expanded
+            ? `${c.border} ${c.text} bg-white/50 dark:bg-zinc-800/50`
+            : `border-dashed ${c.border} ${c.text} hover:bg-white/60 dark:hover:bg-zinc-800/40`
+        }`}
       >
+        <svg
+          className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
         {expanded ? t("lessDetail") : t("moreDetail")}
       </button>
 
@@ -263,17 +278,20 @@ function SegmentCard({ segment }: { segment: Segment }) {
               )}
             </>
           )}
-
-          {/* Campaign button */}
-          {(segment.bestChannels?.length || segment.messagingAngle) && (
-            <button
-              onClick={handleCampaign}
-              className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              {t("turnIntoCampaign")}
-            </button>
-          )}
         </div>
+      )}
+
+      {/* Campaign button — always visible when data exists */}
+      {hasCampaignData && (
+        <button
+          onClick={handleCampaign}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-[0.98]"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          </svg>
+          {t("turnIntoCampaign")}
+        </button>
       )}
     </div>
   );
@@ -407,8 +425,8 @@ export default function SegmentResults({
 
       {/* Segment cards */}
       <div className="flex flex-col gap-4">
-        {result.segments.map((seg) => (
-          <SegmentCard key={seg.name} segment={seg} />
+        {result.segments.map((seg, idx) => (
+          <SegmentCard key={seg.name} segment={seg} initialExpanded={idx === 0} />
         ))}
       </div>
 

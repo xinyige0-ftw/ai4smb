@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { BUSINESS_TYPES } from "@/lib/prompts";
 
 export interface ReviewSubmitData {
   rating: number;
@@ -55,8 +56,10 @@ export default function ReviewPrompt({
   userName = "",
 }: ReviewPromptProps) {
   const t = useTranslations("review");
+  const tb = useTranslations("businesses");
   const hasUserInfo = !!(userEmail || userName);
   const [rating, setRating] = useState(0);
+  const [reviewBusinessType, setReviewBusinessType] = useState(businessType);
   const [reviewLocation, setReviewLocation] = useState(location);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [npsScore, setNpsScore] = useState<number | null>(null);
@@ -67,7 +70,6 @@ export default function ReviewPrompt({
   const [consentDisplay, setConsentDisplay] = useState(true);
   const [consentContact, setConsentContact] = useState(false);
 
-  const maxChars = 500;
   const minWords = 10;
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -78,7 +80,7 @@ export default function ReviewPrompt({
       text,
       displayName,
       email,
-      businessType,
+      businessType: reviewBusinessType,
       location: reviewLocation,
       isAnonymous: false,
       consentDisplay,
@@ -234,16 +236,15 @@ export default function ReviewPrompt({
           </label>
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value.slice(0, maxChars))}
+            onChange={(e) => setText(e.target.value)}
             rows={3}
             className={`w-full resize-none rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 ${text.trim() && wordCount < minWords ? "border-red-300 dark:border-red-700" : !text.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-200 dark:border-zinc-700"}`}
             placeholder={t("textInputPlaceholder")}
           />
-          <div className="mt-1 flex justify-between text-xs text-zinc-400 dark:text-zinc-500">
+          <div className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
             <span className={wordCount > 0 && wordCount < minWords ? "text-red-500" : ""}>
               {wordCount}/{minWords} {t("wordsMin")}
             </span>
-            <span>{text.length}/{maxChars}</span>
           </div>
         </div>
 
@@ -274,6 +275,23 @@ export default function ReviewPrompt({
               className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 ${!displayName.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-200 dark:border-zinc-700"}`}
               placeholder={t("namePlaceholder")}
             />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {t("businessTypeLabel")} <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={reviewBusinessType}
+              onChange={(e) => setReviewBusinessType(e.target.value)}
+              className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-zinc-800 dark:text-zinc-100 ${!reviewBusinessType ? "border-red-300 dark:border-red-700" : "border-zinc-200 dark:border-zinc-700"}`}
+            >
+              <option value="">{t("businessTypePlaceholder")}</option>
+              {BUSINESS_TYPES.map((bt) => (
+                <option key={bt.id} value={bt.id}>
+                  {bt.icon} {tb(bt.id)}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -316,7 +334,7 @@ export default function ReviewPrompt({
         </div>
 
         <button
-          disabled={rating === 0 || !reviewLocation.trim() || !displayName.trim() || !email.trim() || wordCount < minWords}
+          disabled={rating === 0 || !reviewLocation.trim() || !displayName.trim() || !email.trim() || !reviewBusinessType || wordCount < minWords}
           onClick={handleSubmit}
           className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >

@@ -353,6 +353,8 @@
     "campaignCount": "{count, plural, one {# campaign} other {# campaigns}}",
     "segmentCount": "{count, plural, one {# segment} other {# segments}}",
     "nameLabel": "Your name or business name (current or future)",
+    "businessTypeLabel": "Your business type",
+    "businessTypePlaceholder": "Select your business type",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
     "consentDisplay": "I agree that my review may be displayed publicly on the AI4SMB website.",

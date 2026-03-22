@@ -353,6 +353,8 @@
     "campaignCount": "{count}个方案",
     "segmentCount": "{count}个分群",
     "nameLabel": "你的名字或商家名称（现有或未来的都行）",
+    "businessTypeLabel": "你的行业类型",
+    "businessTypePlaceholder": "选择你的行业",
     "emailLabel": "邮箱",
     "emailPlaceholder": "you@example.com",
     "consentDisplay": "我同意我的评价可以在AI4SMB网站上公开显示。",

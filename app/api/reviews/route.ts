@@ -92,7 +92,7 @@ export async function POST(req: Request) {
         user_id: userId || null,
         rating,
         nps_score: validNps,
-        text: (text || "").slice(0, 1000),
+        text: text || "",
         business_type: businessType || "",
         location: (location || "").slice(0, 200),
         display_name: (displayName || "").slice(0, 100),
