@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (anonId && !checkRateLimit(anonId)) {
+    if (anonId && !checkRateLimit(anonId, "generate")) {
       return Response.json(
         { error: "You've reached the limit of 30 generations per hour. Please try again later." },
         { status: 429 }
