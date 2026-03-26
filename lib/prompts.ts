@@ -103,8 +103,8 @@ export function buildPrompt(input: GenerateInput, locale?: string): string {
   return `
 Business: ${name} (${businessLabel})
 ${input.location ? `Location: ${input.location}` : ""}
+${input.details ? `Products/services: ${input.details}` : ""}
 Goal: ${goalLabel}
-${input.details ? `Additional context: ${input.details}` : ""}
 
 ${budgetInstruction}
 
@@ -174,6 +174,8 @@ export function getSystemPrompt(locale?: string): string {
   const base = `You are a senior marketing strategist who specializes in helping small businesses with limited budgets. You think about channel selection, budget allocation, timing, and audience — not just words.
 
 When choosing channels, consider the business type, their likely audience, budget constraints, and LOCATION. Never suggest strategies that would waste a small budget. Be specific and actionable — give them copy they can paste and use today.
+
+When products/services are provided, USE THEM in your campaign — weave them into ad copy, captions, hashtags, email subject lines, and image ideas. Be specific to what they actually sell, not generic category language.
 
 When a location is provided, USE IT in your campaign:
 - Reference the city/region in ad copy, hashtags, and captions (e.g. "#SanFranciscoCoffee", "Best brunch in Brooklyn")

@@ -126,22 +126,6 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
           </h1>
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">{t("step1Subtitle")}</p>
 
-          <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {t("locationLabel")} <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                placeholder={t("locationPlaceholder")}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className={`min-w-0 flex-1 rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!location.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
-              />
-              <VoiceInput onTranscript={(t) => setLocation((v) => v + (v ? " " : "") + t)} />
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {BUSINESS_TYPES.map((bt) => (
               <button
@@ -171,26 +155,49 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
             </div>
           )}
 
-          <div className="mt-4">
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                placeholder={t("businessNamePlaceholder")}
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-              <VoiceInput onTranscript={(t) => setBusinessName((v) => v + (v ? " " : "") + t)} />
-            </div>
-          </div>
+          {businessType && (businessType !== "other" || businessTypeCustom.trim()) && (
+            <div className="mt-5 space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t("businessNameLabel")} <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    placeholder={t("businessNamePlaceholder")}
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className={`min-w-0 flex-1 rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!businessName.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
+                  />
+                  <VoiceInput onTranscript={(t) => setBusinessName((v) => v + (v ? " " : "") + t)} />
+                </div>
+              </div>
 
-          <button
-            onClick={() => setStep(2)}
-            disabled={!businessType || !location.trim() || (businessType === "other" && !businessTypeCustom.trim())}
-            className="mt-4 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
-          >
-            {t("continue")}
-          </button>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t("locationLabel")} <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    placeholder={t("locationPlaceholder")}
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className={`min-w-0 flex-1 rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!location.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
+                  />
+                  <VoiceInput onTranscript={(t) => setLocation((v) => v + (v ? " " : "") + t)} />
+                </div>
+              </div>
+
+              <button
+                onClick={() => setStep(2)}
+                disabled={!businessName.trim() || !location.trim()}
+                className="mt-1 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                {t("continue")}
+              </button>
+            </div>
+          )}
 
           <button onClick={onBack} className="mt-4 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
             {t("backToOptions")}
@@ -205,13 +212,13 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
             {t("step2Title")}
           </h1>
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-            {t("step2Subtitle")}
+            {t("step2SubtitleRequired")}
           </p>
 
           {/* Customer types */}
           <div className="mb-5">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {t("customerTypesLabel")}
+              {t("customerTypesLabel")} <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {CUSTOMER_TYPES.map((ct) => (
@@ -229,7 +236,7 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
           {/* Visit frequency */}
           <div className="mb-5">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {t("visitFreqLabel")}
+              {t("visitFreqLabel")} <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {VISIT_FREQUENCIES.map((vf) => (
@@ -277,7 +284,7 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
           {/* Discovery */}
           <div className="mb-5">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {t("discoveryLabel")}
+              {t("discoveryLabel")} <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {DISCOVERY_CHANNELS.map((dc) => (
@@ -324,7 +331,7 @@ export default function InterviewMode({ onBack }: InterviewModeProps) {
             </button>
             <button
               onClick={handleAnalyze}
-              disabled={loading || !businessType || !location.trim()}
+              disabled={loading || !businessType || !location.trim() || customerTypes.length === 0 || !visitFrequency || discoveryChannels.length === 0}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
             >
               {loading ? (

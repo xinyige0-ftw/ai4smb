@@ -149,18 +149,51 @@ ${locale === "zh" ? "\nIMPORTANT: Respond entirely in Simplified Chinese (简体
 export interface BenchmarkInput {
   businessType: string;
   location?: string;
+  yearsInBusiness?: string;
+  customerVolume?: string;
+  biggestChallenge?: string;
 }
+
+const YEARS_LABELS: Record<string, string> = {
+  under_1: "less than 1 year",
+  "1_to_3": "1-3 years",
+  "3_to_10": "3-10 years",
+  "10_plus": "10+ years",
+};
+
+const VOLUME_LABELS: Record<string, string> = {
+  under_50: "fewer than 50 customers/month",
+  "50_200": "50-200 customers/month",
+  "200_1000": "200-1,000 customers/month",
+  "1000_plus": "1,000+ customers/month",
+};
+
+const CHALLENGE_LABELS: Record<string, string> = {
+  new_customers: "getting new customers",
+  retention: "retaining existing customers",
+  standing_out: "standing out from competitors",
+  online_presence: "growing online presence",
+};
 
 export function buildBenchmarkPrompt(input: BenchmarkInput, locale?: string): string {
   const businessLabel =
     BUSINESS_TYPES.find((b) => b.id === input.businessType)?.label ||
     input.businessType;
 
+  const contextLines: string[] = [];
+  if (input.yearsInBusiness) contextLines.push(`Years in business: ${YEARS_LABELS[input.yearsInBusiness] || input.yearsInBusiness}`);
+  if (input.customerVolume) contextLines.push(`Monthly customer volume: ${VOLUME_LABELS[input.customerVolume] || input.customerVolume}`);
+  if (input.biggestChallenge) contextLines.push(`Biggest challenge: ${CHALLENGE_LABELS[input.biggestChallenge] || input.biggestChallenge}`);
+  const contextBlock = contextLines.length
+    ? `\nAdditional context about this business:\n${contextLines.map(l => `- ${l}`).join("\n")}\n\nUse this context to tailor segment sizes, recommendations, and quick wins to this business's specific stage and challenges.`
+    : "";
+
   return `
 You are an expert in U.S. small business customer analytics with deep knowledge of industry patterns.
 
 Business type: ${businessLabel}
 ${input.location ? `Location: ${input.location}` : "Location: United States (general)"}
+${contextBlock}
 
 Based on your knowledge of typical customer patterns for ${businessLabel} businesses${input.location ? ` in ${input.location}` : " in the U.S."}, identify the 3-5 most common customer segments. Ground these in real industry patterns — who typically visits this type of business, why, how often, and what they value.
 

@@ -210,6 +210,24 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
         </p>
       </div>
 
+      {/* Business type */}
+      <div className="mb-5">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {t("businessTypeRequired")} <span className="text-red-500">*</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {BUSINESS_TYPES.filter(b => b.id !== "other").map((bt) => (
+            <button
+              key={bt.id}
+              onClick={() => setBusinessType(businessType === bt.id ? "" : bt.id)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${businessType === bt.id ? "border-blue-600 bg-blue-600 text-white" : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:text-zinc-300"}`}
+            >
+              {bt.icon} {tb(bt.id)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Manual paste fallback */}
       <div className="flex items-start gap-1.5">
         <textarea
@@ -224,24 +242,6 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
       <p className="mt-1 text-right text-xs text-zinc-400">
         {reviewText.length} {t("characters")} {reviewText.length > 8000 && t("willTrim")}
       </p>
-
-      {/* Optional business type */}
-      <div className="mt-4">
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          {t("businessTypeLabel")}
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {BUSINESS_TYPES.filter(b => b.id !== "other").map((bt) => (
-            <button
-              key={bt.id}
-              onClick={() => setBusinessType(businessType === bt.id ? "" : bt.id)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${businessType === bt.id ? "border-blue-600 bg-blue-600 text-white" : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-600 dark:text-zinc-300"}`}
-            >
-              {bt.icon} {tb(bt.id)}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
@@ -258,7 +258,7 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
         </button>
         <button
           onClick={handleAnalyze}
-          disabled={!reviewText.trim() || loading}
+          disabled={!reviewText.trim() || !businessType || loading}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
         >
           {loading ? (

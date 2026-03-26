@@ -103,24 +103,10 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-start gap-1.5">
-        <textarea
-          placeholder={t("textPlaceholder")}
-          value={socialContent}
-          onChange={(e) => setSocialContent(e.target.value)}
-          rows={12}
-          className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-        />
-        <VoiceInput onTranscript={(t) => setSocialContent((v) => v + (v ? " " : "") + t)} className="mt-1" />
-      </div>
-      <p className="mt-1 text-right text-xs text-zinc-400">
-        {socialContent.length} {t("characters")} {socialContent.length > 5000 && t("willTrim")}
-      </p>
-
-      {/* Optional business type */}
-      <div className="mt-4">
+      {/* Business type */}
+      <div className="mb-5">
         <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          {t("businessTypeLabel")}
+          {t("businessTypeRequired")} <span className="text-red-500">*</span>
         </label>
         <div className="flex flex-wrap gap-2">
           {BUSINESS_TYPES.filter(b => b.id !== "other").map((bt) => (
@@ -135,6 +121,20 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
+      <div className="flex items-start gap-1.5">
+        <textarea
+          placeholder={t("textPlaceholder")}
+          value={socialContent}
+          onChange={(e) => setSocialContent(e.target.value)}
+          rows={12}
+          className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-sm leading-relaxed dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+        />
+        <VoiceInput onTranscript={(t) => setSocialContent((v) => v + (v ? " " : "") + t)} className="mt-1" />
+      </div>
+      <p className="mt-1 text-right text-xs text-zinc-400">
+        {socialContent.length} {t("characters")} {socialContent.length > 5000 && t("willTrim")}
+      </p>
+
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{error}</div>
       )}
@@ -143,7 +143,7 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
         <button onClick={onBack} className="rounded-lg border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-600 dark:border-zinc-600 dark:text-zinc-300">{t("back")}</button>
         <button
           onClick={handleAnalyze}
-          disabled={!socialContent.trim() || loading}
+          disabled={!socialContent.trim() || !businessType || loading}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
         >
           {loading ? (

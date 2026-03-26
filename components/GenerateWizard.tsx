@@ -29,13 +29,11 @@ export default function GenerateWizard() {
   const [businessTypeCustom, setBusinessTypeCustom] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [location, setLocation] = useState("");
-  const [showName, setShowName] = useState(false);
-
-  const [goal, setGoal] = useState("new_customers");
-  const [budget, setBudget] = useState("any");
-  const [channels, setChannels] = useState<string[]>(["smart"]);
   const [details, setDetails] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
+
+  const [goal, setGoal] = useState("");
+  const [budget, setBudget] = useState("");
+  const [channels, setChannels] = useState<string[]>(["smart"]);
 
   useEffect(() => {
     try {
@@ -123,12 +121,10 @@ export default function GenerateWizard() {
           setBusinessType("");
           setBusinessTypeCustom("");
           setBusinessName("");
-          setShowName(false);
           setGoal("");
-          setBudget("any");
+          setBudget("");
           setChannels(["smart"]);
           setDetails("");
-          setShowDetails(false);
         }}
         onAdjust={() => setStep(2)}
         loading={loading}
@@ -154,19 +150,6 @@ export default function GenerateWizard() {
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
             {t("wizardSubtitle")}
           </p>
-
-          <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {t("locationLabel")} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder={t("locationPlaceholder")}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className={`w-full rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!location.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
-            />
-          </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {BUSINESS_TYPES.map((bt) => (
@@ -196,36 +179,61 @@ export default function GenerateWizard() {
             />
           )}
 
-          <div className="mt-4 space-y-2">
-            {!showName ? (
+          {/* Text fields appear after business type is selected */}
+          {businessType && (businessType !== "other" || businessTypeCustom.trim()) && (
+            <div className="mt-5 space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t("businessNameLabel")} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder={t("businessNamePlaceholder")}
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  className={`w-full rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!businessName.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t("locationLabel")} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder={t("locationPlaceholder")}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className={`w-full rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!location.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {t("detailsLabel")} <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  placeholder={t("detailsPlaceholder")}
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  rows={2}
+                  className={`w-full rounded-lg border px-4 py-3 text-sm dark:bg-zinc-800 dark:text-zinc-100 ${!details.trim() ? "border-red-300 dark:border-red-700" : "border-zinc-300 dark:border-zinc-600"}`}
+                />
+              </div>
+
               <button
-                onClick={() => setShowName(true)}
-                className="w-full text-center text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                onClick={() => {
+                  if (!businessType || !location.trim() || !businessName.trim() || !details.trim()) return;
+                  if (businessType === "other" && !businessTypeCustom.trim()) return;
+                  setStep(2);
+                }}
+                disabled={!businessType || !location.trim() || !businessName.trim() || !details.trim() || (businessType === "other" && !businessTypeCustom.trim())}
+                className="mt-1 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
               >
-                {t("addBusinessName")}
+                {t("continue")}
               </button>
-            ) : (
-              <input
-                type="text"
-                placeholder={t("businessNamePlaceholder")}
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            )}
-            <button
-              onClick={() => {
-                if (!businessType) return;
-                if (businessType === "other" && !businessTypeCustom.trim()) return;
-                if (!location.trim()) return;
-                setStep(2);
-              }}
-              disabled={!businessType || !location.trim() || (businessType === "other" && !businessTypeCustom.trim())}
-              className="mt-2 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {t("continue")}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -236,7 +244,7 @@ export default function GenerateWizard() {
             {t("step2Title")}
           </h1>
           <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
-            {t("step2Subtitle")}
+            {t("step2SubtitlePick")}
           </p>
 
           {/* Goals */}
@@ -300,24 +308,6 @@ export default function GenerateWizard() {
             </div>
           </div>
 
-          {/* Optional details */}
-          {!showDetails ? (
-            <button
-              onClick={() => setShowDetails(true)}
-              className="mb-6 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
-            >
-              {t("addDetails")}
-            </button>
-          ) : (
-            <textarea
-              placeholder={t("detailsPlaceholder")}
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              rows={3}
-              className="mb-6 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
-          )}
-
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
               {error}
@@ -334,7 +324,7 @@ export default function GenerateWizard() {
             </button>
             <button
               onClick={handleGenerate}
-              disabled={!goal || loading}
+              disabled={!goal || !budget || loading}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
             >
               {loading ? (
