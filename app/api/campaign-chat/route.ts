@@ -1,6 +1,6 @@
 import { getChatSystemPrompt } from "@/lib/campaign-chat-prompts";
 import { getUser } from "@/lib/auth";
-import { getOrCreateSession, extractSessionMeta } from "@/lib/supabase";
+import { getOrCreateSession, saveChat, extractSessionMeta } from "@/lib/supabase";
 import { generateChat, getDefaultProvider } from "@/lib/ai-provider";
 
 export async function POST(req: Request) {
@@ -22,10 +22,13 @@ export async function POST(req: Request) {
       if (user) userId = user.id;
     } catch {}
 
+    let sessionId: string | null = null;
     if (anonId && anonId !== "unknown") {
       const meta = extractSessionMeta(req, "chat", locale);
-      getOrCreateSession(anonId, userId, meta).catch(() => {});
+      sessionId = await getOrCreateSession(anonId, userId, meta);
     }
+
+    const lastUserMsg = messages.filter((m) => m.role === "user").at(-1)?.content || "";
 
     const response = await generateChat(
       getChatSystemPrompt(locale),
@@ -34,6 +37,13 @@ export async function POST(req: Request) {
       getDefaultProvider()
     );
     const text = response.text || "";
+
+    saveChat({
+      session_id: sessionId,
+      user_message: lastUserMsg,
+      assistant_message: text,
+      locale,
+    }).catch(() => {});
 
     return Response.json({ message: text });
   } catch (err) {

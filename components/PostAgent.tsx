@@ -51,6 +51,7 @@ export default function PostAgent({ channels, businessContext }: PostAgentProps)
           platform: ch.channel,
           businessContext,
           locale,
+          anonId: typeof window !== "undefined" ? window.localStorage.getItem("ai4smb_anon_id") || "unknown" : "unknown",
         }),
       });
 

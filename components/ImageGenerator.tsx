@@ -46,7 +46,10 @@ export default function ImageGenerator({
       const res = await fetch("/api/imagine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, width, height }),
+        body: JSON.stringify({
+          prompt, width, height,
+          anonId: typeof window !== "undefined" ? window.localStorage.getItem("ai4smb_anon_id") || "unknown" : "unknown",
+        }),
       });
       const data = await res.json();
 

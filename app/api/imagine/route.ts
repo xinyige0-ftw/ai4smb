@@ -57,13 +57,29 @@ async function tryHuggingFace(prompt: string): Promise<string | null> {
   }
 }
 
+import { getUser } from "@/lib/auth";
+import { getOrCreateSession, extractSessionMeta } from "@/lib/supabase";
+
 export async function POST(req: Request) {
   try {
-    const { prompt, width = 1024, height = 1024 } = (await req.json()) as {
+    const { prompt, width = 1024, height = 1024, anonId, locale } = (await req.json()) as {
       prompt: string;
       width?: number;
       height?: number;
+      anonId?: string;
+      locale?: string;
     };
+
+    let userId: string | undefined;
+    try {
+      const user = await getUser();
+      if (user) userId = user.id;
+    } catch {}
+
+    if (anonId && anonId !== "unknown") {
+      const meta = extractSessionMeta(req, "imagine", locale);
+      getOrCreateSession(anonId, userId, meta).catch(() => {});
+    }
 
     if (!prompt) {
       return Response.json({ error: "Prompt required" }, { status: 400 });

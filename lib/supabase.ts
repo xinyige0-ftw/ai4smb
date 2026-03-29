@@ -104,10 +104,15 @@ export async function getOrCreateSession(
   if (!sessionId) return null;
 
   const action = meta?.action;
-  if (action === "campaign" || action === "segment" || action === "chat") {
-    const col = action === "campaign" ? "campaigns_count"
-      : action === "segment" ? "segments_count"
-      : "chats_count";
+  const counterMap: Record<string, string> = {
+    campaign: "campaigns_count",
+    segment: "segments_count",
+    chat: "chats_count",
+    format_post: "format_posts_count",
+    imagine: "imagine_count",
+  };
+  const col = counterMap[action ?? ""];
+  if (col) {
     await db.rpc("increment_counter", { p_id: sessionId, p_col: col }).then(() => {}, () => {});
   }
 
@@ -171,33 +176,58 @@ export async function saveSegment(record: SegmentRecord): Promise<string | null>
   return data?.id ?? null;
 }
 
+// ─── CHAT HELPERS ────────────────────────────────────────────────
+
+export interface ChatRecord {
+  session_id: string | null;
+  user_message: string;
+  assistant_message?: string;
+  locale?: string;
+}
+
+export async function saveChat(record: ChatRecord): Promise<string | null> {
+  const db = getClient();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("chats")
+    .insert(record)
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Save chat error:", error.message);
+    return null;
+  }
+  return data?.id ?? null;
+}
+
 // ─── HISTORY HELPERS ──────────────────────────────────────────────
 
 export async function getHistory(anonId: string) {
   const db = getClient();
   if (!db || !anonId || anonId === "unknown") return { campaigns: [], segments: [] };
 
-  const { data: session } = await db
+  const { data: sessions } = await db
     .from("sessions")
     .select("id")
-    .eq("anon_id", anonId)
-    .single();
+    .eq("anon_id", anonId);
 
-  if (!session) return { campaigns: [], segments: [] };
+  if (!sessions || sessions.length === 0) return { campaigns: [], segments: [] };
 
-  const sessionId = session.id;
+  const sessionIds = sessions.map((s) => s.id);
 
   const [{ data: campaigns }, { data: segments }] = await Promise.all([
     db
       .from("campaigns")
       .select("id, name, business_type, business_name, goal, created_at, result")
-      .eq("session_id", sessionId)
+      .in("session_id", sessionIds)
       .order("created_at", { ascending: false })
       .limit(20),
     db
       .from("segments")
       .select("id, name, mode, meta_label, created_at, result")
-      .eq("session_id", sessionId)
+      .in("session_id", sessionIds)
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
