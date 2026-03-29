@@ -36,6 +36,8 @@ export interface SessionMeta {
   location?: string;
 }
 
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+
 export async function getOrCreateSession(
   anonId: string,
   userId?: string,
@@ -44,35 +46,63 @@ export async function getOrCreateSession(
   const db = getClient();
   if (!db || !anonId || anonId === "unknown") return null;
 
-  const upsertData: Record<string, unknown> = {
-    anon_id: anonId,
-    last_seen_at: new Date().toISOString(),
-  };
-  if (userId) upsertData.user_id = userId;
-  if (meta?.locale) upsertData.locale = meta.locale;
-  if (meta?.userAgent) upsertData.user_agent = meta.userAgent;
-  if (meta?.action) upsertData.last_action = meta.action;
-  if (meta?.referrer) upsertData.referrer = meta.referrer;
-  if (meta?.ipHash) upsertData.ip_hash = meta.ipHash;
-  if (meta?.businessType) upsertData.business_type = meta.businessType;
-  if (meta?.businessName) upsertData.business_name = meta.businessName;
-  if (meta?.location) upsertData.location = meta.location;
+  const now = new Date().toISOString();
+  const cutoff = new Date(Date.now() - SESSION_TIMEOUT_MS).toISOString();
 
-  const { data, error } = await db
+  // Look for an active session (last activity within timeout window)
+  const { data: existing } = await db
     .from("sessions")
-    .upsert(upsertData, { onConflict: "anon_id" })
     .select("id")
-    .single();
+    .eq("anon_id", anonId)
+    .gte("last_seen_at", cutoff)
+    .order("last_seen_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (error) {
-    console.error("Session upsert error:", error.message);
-    return null;
+  let sessionId: string | null = null;
+
+  if (existing?.id) {
+    // Reuse active session — update last_seen_at and meta
+    const updateData: Record<string, unknown> = { last_seen_at: now };
+    if (userId) updateData.user_id = userId;
+    if (meta?.action) updateData.last_action = meta.action;
+    if (meta?.businessType) updateData.business_type = meta.businessType;
+    if (meta?.businessName) updateData.business_name = meta.businessName;
+    if (meta?.location) updateData.location = meta.location;
+
+    await db.from("sessions").update(updateData).eq("id", existing.id);
+    sessionId = existing.id;
+  } else {
+    // No active session — create a new visit
+    const insertData: Record<string, unknown> = {
+      anon_id: anonId,
+      last_seen_at: now,
+    };
+    if (userId) insertData.user_id = userId;
+    if (meta?.locale) insertData.locale = meta.locale;
+    if (meta?.userAgent) insertData.user_agent = meta.userAgent;
+    if (meta?.action) insertData.last_action = meta.action;
+    if (meta?.referrer) insertData.referrer = meta.referrer;
+    if (meta?.ipHash) insertData.ip_hash = meta.ipHash;
+    if (meta?.businessType) insertData.business_type = meta.businessType;
+    if (meta?.businessName) insertData.business_name = meta.businessName;
+    if (meta?.location) insertData.location = meta.location;
+
+    const { data, error } = await db
+      .from("sessions")
+      .insert(insertData)
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("Session insert error:", error.message);
+      return null;
+    }
+    sessionId = data?.id ?? null;
   }
 
-  const sessionId = data?.id;
   if (!sessionId) return null;
 
-  // Increment action counters via raw update
   const action = meta?.action;
   if (action === "campaign" || action === "segment" || action === "chat") {
     const col = action === "campaign" ? "campaigns_count"
