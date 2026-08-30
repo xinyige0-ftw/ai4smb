@@ -49,7 +49,13 @@ export default function SignInModal({ onClose }: SignInModalProps) {
       options: { emailRedirectTo: getRedirectUrl() },
     });
     setLoading(false);
-    if (error) { setError(error.message); return; }
+    if (error) {
+      // A 429 here is a send quota, not a mistake the person made. The provider's
+      // own wording ("Email rate limit exceeded") is English-only and reads like a
+      // fault, so say what happened and what to do instead.
+      setError(error.status === 429 ? t("rateLimited") : error.message);
+      return;
+    }
     setSent(true);
   }
 

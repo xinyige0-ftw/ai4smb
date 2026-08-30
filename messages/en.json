@@ -264,7 +264,8 @@
     "magicLinkSent": "We sent a magic link to <strong>{email}</strong>. Click the link to sign in.",
     "checkSpam": "Don't see it? Check your spam or junk folder. Hotmail and Outlook may take a few minutes.",
     "gotIt": "Got it, close this",
-    "skipForNow": "Continue without signing in"
+    "skipForNow": "Continue without signing in",
+    "rateLimited": "Too many sign-in emails have been sent recently. Please wait a few minutes and try again, or sign in with Google."
   },
   "channel": {
     "whyThis": "Why this channel?",

@@ -264,7 +264,8 @@
     "magicLinkSent": "我们发了一封登录邮件到 <strong>{email}</strong>，点邮件里的链接就能登录。",
     "checkSpam": "没收到？请检查垃圾邮件文件夹。Hotmail 和 Outlook 邮箱可能需要几分钟。",
     "gotIt": "知道了，关闭",
-    "skipForNow": "先不登录，继续使用"
+    "skipForNow": "先不登录，继续使用",
+    "rateLimited": "最近发送的登录邮件太多了。请等几分钟再试，或者用 Google 登录。"
   },
   "channel": {
     "whyThis": "为什么选这个渠道？",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 /**
@@ -25,20 +25,24 @@ function toReason(value: string | null): Reason | null {
 
 function AuthErrorBanner() {
   const t = useTranslations("authError");
-  const reason = toReason(useSearchParams().get("auth_error"));
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+
+  // Frozen at first render. The effect below removes the parameter from the URL,
+  // which would otherwise take the banner down with it on the very next render.
+  const [reason] = useState(() => toReason(params.get("auth_error")));
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (!reason) return;
-    const params = new URLSearchParams(window.location.search);
-    params.delete("auth_error");
-    const query = params.toString();
-    window.history.replaceState(
-      null,
-      "",
-      window.location.pathname + (query ? `?${query}` : "")
-    );
-  }, [reason]);
+    const next = new URLSearchParams(window.location.search);
+    next.delete("auth_error");
+    const query = next.toString();
+    // router.replace rather than history.replaceState: the App Router keeps its
+    // own history state, and a raw replaceState is put back on the next sync.
+    router.replace(pathname + (query ? `?${query}` : ""), { scroll: false });
+  }, [reason, router, pathname]);
 
   if (!reason || dismissed) return null;
 
