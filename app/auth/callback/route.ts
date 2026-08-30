@@ -22,11 +22,15 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") || "/history";
   const errorParam = searchParams.get("error_description") || searchParams.get("error");
 
+  // The reason is a fixed vocabulary, not the provider's raw message: the home
+  // page turns it into an explanation, and a provider string in a URL the person
+  // can see is neither readable nor safe to echo back.
+  const fail = (reason: "expired" | "browser" | "provider" | "unknown") =>
+    NextResponse.redirect(`${origin}/?auth_error=${reason}`);
+
   if (errorParam) {
     console.error("Auth callback error from provider:", errorParam);
-    return NextResponse.redirect(
-      `${origin}/?auth_error=${encodeURIComponent(errorParam)}`
-    );
+    return fail("provider");
   }
 
   const supabase = await createAuthClient();
@@ -40,7 +44,13 @@ export async function GET(request: Request) {
       }
       return NextResponse.redirect(`${origin}${next}`);
     }
-    if (error) console.error("Code exchange failed:", error.message);
+    if (error) {
+      // The PKCE verifier lives in a cookie set when the link was requested. If
+      // the link is opened in a different browser, that cookie is absent and the
+      // exchange cannot succeed no matter how fresh the link is.
+      console.error("Code exchange failed:", error.message);
+      return fail("browser");
+    }
   }
 
   // Flow 2: Token hash verification (magic link / OTP fallback)
@@ -55,8 +65,14 @@ export async function GET(request: Request) {
       }
       return NextResponse.redirect(`${origin}${next}`);
     }
-    if (error) console.error("Token hash verify failed:", error.message);
+    if (error) {
+      // A one-time token that fails to verify has almost always been used
+      // already, most often by a mail client or scanner prefetching the link.
+      console.error("Token hash verify failed:", error.message);
+      return fail("expired");
+    }
   }
 
-  return NextResponse.redirect(`${origin}/?auth_error=true`);
+  console.error("Auth callback reached with no code and no token_hash.");
+  return fail("unknown");
 }

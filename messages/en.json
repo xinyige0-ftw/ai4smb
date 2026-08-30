@@ -847,5 +847,13 @@
   },
   "actionProgress": {
     "progressLabel": "{done} of {total} done"
+  },
+  "authError": {
+    "title": "That sign-in link did not work.",
+    "expired": "The link had already been used. Single-use links are sometimes opened by an email provider's security scanner before you get to them. Request a new one and it should work.",
+    "browser": "The link was opened in a different browser from the one that requested it. Open it in the browser where you asked for the link, or request a new one from this browser.",
+    "provider": "The sign-in provider refused the request. Please try again, or use the other sign-in method.",
+    "unknown": "Please request a new sign-in link and open it in this browser.",
+    "dismiss": "Dismiss"
   }
 }

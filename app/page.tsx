@@ -3,6 +3,7 @@ import TestimonialCarousel from "@/components/TestimonialCarousel";
 import AuthButtonWrapper from "@/components/AuthButtonWrapper";
 import LanguageToggle from "@/components/LanguageToggle";
 import OpenModelBadge from "@/components/OpenModelBadge";
+import AuthErrorNotice from "@/components/AuthErrorNotice";
 
 export default function Home() {
   const t = useTranslations("landing");
@@ -10,6 +11,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-black">
+      <AuthErrorNotice />
+
       {/* Nav */}
       <nav className="border-b border-zinc-100 bg-white dark:border-zinc-800 dark:bg-black">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
