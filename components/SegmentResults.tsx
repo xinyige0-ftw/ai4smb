@@ -139,7 +139,7 @@ function SegmentCard({
     const prefill = {
       channels: segment.bestChannels?.map((ch) => ch.channel) ?? [],
       tone: segment.toneGuidance ?? "",
-      details: [segment.messagingAngle, segment.offerSuggestion].filter(Boolean).join(" — "),
+      details: [segment.messagingAngle, segment.offerSuggestion].filter(Boolean).join(". "),
     };
     const encoded = encodeURIComponent(JSON.stringify(prefill));
     router.push(`/generate?prefill=1&segment=${encoded}`);

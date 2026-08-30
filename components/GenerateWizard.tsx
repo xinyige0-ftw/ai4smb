@@ -46,6 +46,33 @@ export default function GenerateWizard() {
     } catch { /* ignore corrupt data */ }
   }, []);
 
+  // Arriving from a segment result ("build a campaign for this group"): carry the
+  // group's recommended channels, tone and messaging angle into the form. Runs after
+  // the saved-preferences effect above so the segment wins where the two disagree.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("prefill") !== "1") return;
+    const raw = params.get("segment");
+    if (!raw) return;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return;
+      const seg = parsed as { channels?: unknown; tone?: unknown; details?: unknown };
+
+      const validIds = new Set<string>(CHANNELS.map((c) => c.id));
+      const picked = Array.isArray(seg.channels)
+        ? seg.channels.filter((c): c is string => typeof c === "string" && validIds.has(c))
+        : [];
+      if (picked.length) setChannels(picked);
+
+      const parts = [seg.details, seg.tone]
+        .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+        .map((v) => v.trim());
+      if (parts.length) setDetails(parts.join(". "));
+    } catch { /* a malformed link should not break the page */ }
+  }, []);
+
   function toggleChannel(id: string) {
     if (id === "smart") {
       setChannels(["smart"]);

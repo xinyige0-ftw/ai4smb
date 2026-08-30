@@ -10,7 +10,8 @@ function getServiceClient() {
 
 // GET /api/account/export — everything the platform holds for the signed-in user:
 // their profile row (public.users), their sessions (sessions.user_id = user.id),
-// and every campaign/segment linked to those sessions.
+// every campaign, segment and chat linked to those sessions, and every review
+// they authored. Keep this list in step with the delete route below it.
 export async function GET() {
   try {
     const user = await getUser();
@@ -46,13 +47,18 @@ export async function GET() {
 
     let campaigns: unknown[] = [];
     let segments: unknown[] = [];
+    let chats: unknown[] = [];
 
     if (sessionIds.length > 0) {
-      const [{ data: campaignRows, error: campaignsError }, { data: segmentRows, error: segmentsError }] =
-        await Promise.all([
-          db.from("campaigns").select("*").in("session_id", sessionIds),
-          db.from("segments").select("*").in("session_id", sessionIds),
-        ]);
+      const [
+        { data: campaignRows, error: campaignsError },
+        { data: segmentRows, error: segmentsError },
+        { data: chatRows, error: chatsError },
+      ] = await Promise.all([
+        db.from("campaigns").select("*").in("session_id", sessionIds),
+        db.from("segments").select("*").in("session_id", sessionIds),
+        db.from("chats").select("*").in("session_id", sessionIds),
+      ]);
 
       if (campaignsError) {
         console.error("Export campaigns fetch error:", campaignsError.message);
@@ -62,9 +68,25 @@ export async function GET() {
         console.error("Export segments fetch error:", segmentsError.message);
         return Response.json({ error: "Something went wrong" }, { status: 500 });
       }
+      if (chatsError) {
+        console.error("Export chats fetch error:", chatsError.message);
+        return Response.json({ error: "Something went wrong" }, { status: 500 });
+      }
 
       campaigns = campaignRows ?? [];
       segments = segmentRows ?? [];
+      chats = chatRows ?? [];
+    }
+
+    // Reviews are keyed to the author, not to a session, so they are fetched separately.
+    const { data: reviewRows, error: reviewsError } = await db
+      .from("reviews")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (reviewsError) {
+      console.error("Export reviews fetch error:", reviewsError.message);
+      return Response.json({ error: "Something went wrong" }, { status: 500 });
     }
 
     const payload = {
@@ -73,6 +95,8 @@ export async function GET() {
       sessions: sessions ?? [],
       campaigns,
       segments,
+      chats,
+      reviews: reviewRows ?? [],
     };
 
     return new Response(JSON.stringify(payload, null, 2), {
