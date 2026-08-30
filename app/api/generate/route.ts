@@ -27,10 +27,14 @@ export async function POST(req: Request) {
     }
 
     const prompt = buildPrompt(input, locale);
+    // Two variants per channel plus the strategy/action plan exceed a fixed 2048
+    // token allowance on multi-channel requests. Keep the allowance bounded.
+    const channelCount = input.channels.includes("smart") ? 3 : Math.min(8, Math.max(1, new Set(input.channels).size));
+    const maxTokens = Math.min(6500, 2000 + channelCount * 650);
     const response = await generateJSON(
       getSystemPrompt(locale),
       prompt,
-      { temperature: 0.9, maxTokens: 2048 },
+      { temperature: 0.7, maxTokens },
       getDefaultProvider()
     );
     const text = response.text || "{}";

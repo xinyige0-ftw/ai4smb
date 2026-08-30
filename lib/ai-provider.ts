@@ -137,23 +137,41 @@ export async function generateWithGroq(
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
   const start = Date.now();
 
-  const completion = await groq.chat.completions.create({
-    model,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    temperature: options.temperature ?? 0.7,
-    max_tokens: options.maxTokens ?? 3000,
-    ...(options.jsonMode ? { response_format: { type: "json_object" as const } } : {}),
-  });
-
-  return {
-    text: completion.choices[0]?.message?.content || "",
-    provider: "groq",
-    model,
-    latencyMs: Date.now() - start,
-  };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: system + (attempt ? "\nReturn one complete valid JSON object. Keep copy concise, escape quotes correctly, and close every array and object. Do not omit requested channels." : "") },
+          { role: "user", content: user },
+        ],
+        temperature: attempt ? 0.2 : (options.temperature ?? 0.7),
+        max_tokens: attempt ? Math.min(8000, Math.max(options.maxTokens ?? 3000, 4500)) : (options.maxTokens ?? 3000),
+        ...(options.jsonMode ? { response_format: { type: "json_object" as const } } : {}),
+      });
+      const choice = completion.choices[0];
+      const text = choice?.message?.content || "";
+      if (options.jsonMode) {
+        if (choice?.finish_reason === "length") throw new SyntaxError("Incomplete JSON output");
+        JSON.parse(text);
+      }
+      return { text, provider: "groq", model, latencyMs: Date.now() - start };
+    } catch (error) {
+      const providerError = error as { status?: number; error?: { code?: string; error?: { code?: string } } };
+      const code = providerError.error?.error?.code ?? providerError.error?.code;
+      const invalidJson = options.jsonMode && (
+        error instanceof SyntaxError || (providerError.status === 400 && code === "json_validate_failed")
+      );
+      if (!invalidJson) throw error;
+      if (attempt === 0) {
+        console.warn("[ai-provider] Invalid JSON output; retrying once with a concise response request");
+        continue;
+      }
+      // Do not expose the provider's failed_generation payload to logs or clients.
+      throw new Error("The model did not return complete JSON after one retry. Please try again.");
+    }
+  }
+  throw new Error("No model response");
 }
 
 export async function generateWithGemini(
