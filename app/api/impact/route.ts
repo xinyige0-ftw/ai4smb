@@ -3,10 +3,16 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 /**
  * GET /api/impact — public, aggregated, real-usage numbers for the platform.
  * No PII, no per-user data — table-level counts and review aggregates only.
- * Cached for an hour; every field is either a real query result or omitted
- * entirely (never fabricated / never a placeholder 0).
+ * Every field is either a real query result or omitted entirely (never
+ * fabricated / never a placeholder 0).
+ *
+ * Caching is controlled per response (not via a module-level `revalidate`):
+ * a fully- or partially-successful response is cached for an hour, but a
+ * response where every aggregate query failed — e.g. during a database
+ * outage — is never cached, so the endpoint starts serving real data again
+ * as soon as the database recovers instead of continuing to serve an empty
+ * result for up to an hour after recovery.
  */
-export const revalidate = 3600;
 
 function getClient(): SupabaseClient | null {
   const url = process.env.SUPABASE_URL;
@@ -126,7 +132,20 @@ export async function getImpactStats(): Promise<ImpactStats> {
   return stats;
 }
 
+/**
+ * True when at least one aggregate field beyond `updatedAt` was
+ * successfully computed. Used to decide whether the response is safe to
+ * cache — an all-fields-failed response must never be cached, or an outage
+ * would keep serving an empty result long after the database recovers.
+ */
+export function hasAnyData(stats: ImpactStats): boolean {
+  return Object.keys(stats).some((key) => key !== "updatedAt");
+}
+
 export async function GET() {
   const stats = await getImpactStats();
-  return Response.json(stats);
+  const cacheControl = hasAnyData(stats)
+    ? "public, s-maxage=3600, stale-while-revalidate=600"
+    : "no-store";
+  return Response.json(stats, { headers: { "Cache-Control": cacheControl } });
 }

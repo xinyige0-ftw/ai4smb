@@ -7,6 +7,15 @@ import ChannelCard from "./ChannelCard";
 import PostAgent from "./PostAgent";
 import ReviewPrompt, { type ReviewSubmitData } from "./ReviewPrompt";
 import { formatCampaignReport, downloadText, copyText } from "@/lib/export";
+import {
+  type ActionProgress,
+  progressStorageKey,
+  stepKey,
+  readProgress,
+  writeProgress,
+  toggleStep,
+  completionCount,
+} from "@/lib/action-progress";
 
 interface CampaignData {
   strategy: string;
@@ -52,11 +61,47 @@ export default function CampaignResults({
 }: CampaignResultsProps) {
   const t = useTranslations("generate");
   const tc = useTranslations("common");
+  const ta = useTranslations("actionProgress");
   const [copied, setCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [userInfo, setUserInfo] = useState<{ email: string; name: string; businessType: string; location: string }>({ email: "", name: "", businessType: "", location: "" });
+  const [progress, setProgress] = useState<ActionProgress>({});
+
+  const thisWeekKeys = (campaign.thisWeek ?? []).map((item, i) => stepKey(i, item.day, item.action));
+
+  // Read persisted progress after mount only, so the initial render (and
+  // any server-rendered markup) always matches — avoids a hydration
+  // mismatch between server output and whatever localStorage holds.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(progressStorageKey(campaignId));
+      // Deliberately deferred to an effect (not read during render) so the
+      // client's first render matches the server-rendered markup — reading
+      // localStorage during render would desync from SSR output and trigger
+      // a hydration mismatch. This is a one-time sync from an external
+      // store on mount, which is exactly the case this lint rule's own
+      // guidance calls out as acceptable.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProgress(readProgress(raw));
+    } catch {
+      // localStorage unavailable (private mode, disabled storage, etc) —
+      // checkboxes still work for the session, just without persistence.
+    }
+  }, [campaignId]);
+
+  function handleToggleStep(key: string) {
+    setProgress((prev) => {
+      const next = toggleStep(prev, key);
+      try {
+        localStorage.setItem(progressStorageKey(campaignId), writeProgress(next));
+      } catch {
+        // silent – progress just won't persist this session
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     const prefs = (() => { try { return JSON.parse(localStorage.getItem("ai4smb_prefs") || "{}"); } catch { return {}; } })();
@@ -143,21 +188,40 @@ export default function CampaignResults({
       {/* This Week's Action Plan */}
       {campaign.thisWeek && campaign.thisWeek.length > 0 && (
         <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4 sm:mt-6 sm:p-5 dark:border-green-800 dark:bg-green-950">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
-            {t("thisWeekTitle")}
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
+              {t("thisWeekTitle")}
+            </h2>
+            <span className="text-xs font-medium text-green-700 dark:text-green-300">
+              {ta("progressLabel", { done: completionCount(progress, thisWeekKeys), total: thisWeekKeys.length })}
+            </span>
+          </div>
           <div className="space-y-3">
-            {campaign.thisWeek.map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className="inline-block w-10 shrink-0 rounded-lg bg-green-100 py-1 text-center text-xs font-bold text-green-700 dark:bg-green-900 dark:text-green-300">
-                  {normalizeDay(item.day)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-green-900 dark:text-green-100">{item.action}</p>
-                  <p className="text-xs text-green-600 dark:text-green-400">{item.why}</p>
-                </div>
-              </div>
-            ))}
+            {campaign.thisWeek.map((item, i) => {
+              const key = thisWeekKeys[i];
+              const done = !!progress[key];
+              return (
+                <label key={key} className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={done}
+                    onChange={() => handleToggleStep(key)}
+                    className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-green-300 text-green-600 focus:ring-green-500 dark:border-green-700"
+                  />
+                  <span className="inline-block w-10 shrink-0 rounded-lg bg-green-100 py-1 text-center text-xs font-bold text-green-700 dark:bg-green-900 dark:text-green-300">
+                    {normalizeDay(item.day)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-medium ${done ? "text-zinc-400 line-through dark:text-zinc-500" : "text-green-900 dark:text-green-100"}`}>
+                      {item.action}
+                    </p>
+                    <p className={`text-xs ${done ? "text-zinc-400 dark:text-zinc-500" : "text-green-600 dark:text-green-400"}`}>
+                      {item.why}
+                    </p>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
       )}

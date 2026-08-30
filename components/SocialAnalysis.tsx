@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
+import { assessInput } from "@/lib/input-sufficiency";
 import SegmentResults from "./SegmentResults";
 import VoiceInput from "./VoiceInput";
 
@@ -26,6 +27,8 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState<SegmentData | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
+  const ti = useTranslations("inputSufficiency");
+  const sufficiency = assessInput("social", socialContent);
 
   async function handleAnalyze() {
     if (!socialContent.trim()) return;
@@ -54,6 +57,8 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
           socialContent,
           businessType: businessType || undefined,
           locale,
+          lowConfidence: !sufficiency.sufficient,
+          itemCount: sufficiency.itemCount,
         }),
       });
       const data = await res.json();
@@ -137,6 +142,12 @@ export default function SocialAnalysis({ onBack }: { onBack: () => void }) {
 
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{error}</div>
+      )}
+
+      {socialContent.trim() && !sufficiency.sufficient && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          {ti("notice", { count: sufficiency.itemCount, threshold: sufficiency.threshold })}
+        </div>
       )}
 
       <div className="mt-5 flex gap-3">

@@ -489,6 +489,9 @@
     "errorGeneric": "Something went wrong.",
     "errorNetwork": "Network error. Please try again."
   },
+  "inputSufficiency": {
+    "notice": "You have pasted {count, plural, one {# item} other {# items}}. With a sample this small, treat the output below as preliminary observations rather than a reliable segmentation. About {threshold} or more gives a firmer result."
+  },
   "imageGen": {
     "generate": "Generate image",
     "generating": "Generating...",
@@ -551,10 +554,10 @@
   },
   "segmentResults": {
     "title": "Your Audience Segments",
-    "metaText": "{rowCount} customers analyzed across {columnCount} data points",
+    "metaText": "{rowCount} rows analyzed across {columnCount} columns",
     "keyInsight": "Key Insight",
     "segmentDistribution": "Segment Distribution",
-    "customers": "~{size} customers",
+    "customers": "{size} rows",
     "propensity": "Propensity",
     "ltv": "LTV",
     "whereToReach": "Where to reach them",
@@ -588,6 +591,8 @@
     "ltvLow": "Budget-conscious",
     "lessDetail": "▾ Less detail",
     "moreDetail": "▸ Channels, messaging & recommendations",
+    "downloadList": "Download this list",
+    "downloadListNote": "Built in your browser from the file you uploaded. Nothing is sent anywhere.",
     "benchmarkProvenance": "These segments are model-generated estimates for this business type and location. They are not computed from other businesses' data."
   },
   "architecture": {
@@ -839,5 +844,8 @@
     "contactTitle": "Need higher limits, or building something?",
     "contactBody": "Reach out and tell us what you're building.",
     "contactEmailLabel": "info@ai4smbhub.com"
+  },
+  "actionProgress": {
+    "progressLabel": "{done} of {total} done"
   }
 }

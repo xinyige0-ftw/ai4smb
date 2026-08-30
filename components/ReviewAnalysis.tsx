@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { BUSINESS_TYPES } from "@/lib/prompts";
+import { assessInput } from "@/lib/input-sufficiency";
 import SegmentResults from "./SegmentResults";
 import VoiceInput from "./VoiceInput";
 
@@ -48,6 +49,8 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
   const [fetchingReviews, setFetchingReviews] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<{ name: string; rating: number; totalRatings: number } | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ti = useTranslations("inputSufficiency");
+  const sufficiency = assessInput("reviews", reviewText);
 
   function handleSearchInput(query: string) {
     setSearchQuery(query);
@@ -122,6 +125,8 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
           reviewText,
           businessType: businessType || undefined,
           locale,
+          lowConfidence: !sufficiency.sufficient,
+          itemCount: sufficiency.itemCount,
         }),
       });
       const data = await res.json();
@@ -246,6 +251,12 @@ export default function ReviewAnalysis({ onBack }: { onBack: () => void }) {
       {error && (
         <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
           {error}
+        </div>
+      )}
+
+      {reviewText.trim() && !sufficiency.sufficient && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          {ti("notice", { count: sufficiency.itemCount, threshold: sufficiency.threshold })}
         </div>
       )}
 

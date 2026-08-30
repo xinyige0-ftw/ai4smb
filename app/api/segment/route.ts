@@ -1,4 +1,5 @@
-import { buildSegmentPrompt, getSegmentSystemPrompt, groundCsvResult, type CsvSummary } from "@/lib/segment-prompts";
+import { buildSegmentPrompt, getSegmentSystemPrompt, groundCsvResult, stripUnfoundedSizes, type CsvSummary } from "@/lib/segment-prompts";
+import { markLowConfidence } from "@/lib/input-sufficiency";
 import { getOrCreateSession, saveSegment, extractSessionMeta } from "@/lib/supabase";
 import { getUser } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -18,7 +19,13 @@ import {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { anonId, mode = "csv", locale } = body as { anonId?: string; mode?: string; locale?: string };
+    const { anonId, mode = "csv", locale, lowConfidence, itemCount } = body as {
+      anonId?: string;
+      mode?: string;
+      locale?: string;
+      lowConfidence?: boolean;
+      itemCount?: number;
+    };
 
     let userId: string | undefined;
     try {
@@ -116,9 +123,18 @@ export async function POST(req: Request) {
     );
     const text = response.text || "{}";
     const parsedResult = JSON.parse(text);
-    const result = mode === "csv"
+    // These four modes never analyse an uploaded dataset — any `size` the
+    // model returns for them is invented, so it's stripped post-generation.
+    const NO_DATASET_MODES = new Set(["benchmark", "interview", "reviews", "social"]);
+    let result = mode === "csv"
       ? groundCsvResult(parsedResult, body.summary?.computedFacts, locale)
-      : parsedResult;
+      : NO_DATASET_MODES.has(mode)
+        ? stripUnfoundedSizes(parsedResult, locale)
+        : parsedResult;
+
+    if ((mode === "reviews" || mode === "social") && lowConfidence) {
+      result = markLowConfidence(result, itemCount ?? 0, locale);
+    }
 
     console.log("SEGMENT:", {
       anonId: anonId || "unknown",

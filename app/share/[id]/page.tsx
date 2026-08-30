@@ -114,12 +114,32 @@ function SharedResultView({ type, result, meta }: { type: string; result: unknow
                 {ch.channel.replace("_", " ")}
               </h3>
               <p className="mb-3 text-xs text-zinc-500">{ch.why}</p>
-              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-                <pre className="whitespace-pre-wrap font-sans text-sm text-zinc-700 dark:text-zinc-300">
-                  {Object.entries(ch.content)
-                    .map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`)
-                    .join("\n")}
-                </pre>
+              <div className="flex flex-col gap-3">
+                {Object.entries(ch.content).map(([key, value]) => (
+                  <div key={key} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      {key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ")}
+                    </p>
+                    {value !== null && typeof value === "object" ? (
+                      <div className="flex flex-col gap-1.5">
+                        {Object.entries(value as Record<string, unknown>).map(([sub, subValue]) => (
+                          <div key={sub}>
+                            <span className="text-[11px] uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                              {sub.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ")}
+                            </span>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                              {String(subValue)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                        {String(value)}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           ))}

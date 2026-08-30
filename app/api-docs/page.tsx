@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import NavBar from "@/components/NavBar";
 
-export const metadata: Metadata = {
-  title: "Developer API — AI4SMB Insights",
-  description: "Free, rate-limited API endpoints for tools serving small businesses.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("apiDocs");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "Free, rate-limited API endpoints for tools serving small businesses.",
+  };
+}
 
 interface ParamRow {
   name: string;

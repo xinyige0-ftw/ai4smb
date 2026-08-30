@@ -7,10 +7,13 @@ import { getUser } from "@/lib/auth";
 import { getDashboardStats } from "@/app/api/dashboard/route";
 import { CHANNELS, BUSINESS_TYPES, GOALS } from "@/lib/prompts";
 
-export const metadata: Metadata = {
-  title: "My Marketing — AI4SMB Insights",
-  description: "A summary of your own campaigns and customer analyses on AI4SMB Insights.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "A summary of your own campaigns and customer analyses on AI4SMB Insights.",
+  };
+}
 
 const SUPPORTED_CHANNELS = CHANNELS.filter((c) => c.id !== "smart");
 const KNOWN_BUSINESS_TYPE_IDS = new Set<string>(BUSINESS_TYPES.map((b) => b.id));

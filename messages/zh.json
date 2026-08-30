@@ -489,6 +489,9 @@
     "errorGeneric": "出了点问题。",
     "errorNetwork": "网络错误，请重试。"
   },
+  "inputSufficiency": {
+    "notice": "你粘贴了 {count} 条内容。样本量这么小时，下面的结果应视为初步观察，而不是可靠的客群划分。大约 {threshold} 条以上结果会更扎实。"
+  },
   "imageGen": {
     "generate": "生成图片",
     "generating": "生成中...",
@@ -551,10 +554,10 @@
   },
   "segmentResults": {
     "title": "你的客户分群",
-    "metaText": "分析了{rowCount}位客户的{columnCount}个数据维度",
+    "metaText": "分析了 {rowCount} 行记录的 {columnCount} 个字段",
     "keyInsight": "核心洞察",
     "segmentDistribution": "分群分布",
-    "customers": "约{size}位客户",
+    "customers": "{size} 行",
     "propensity": "购买倾向",
     "ltv": "终身价值",
     "whereToReach": "去哪找他们",
@@ -588,6 +591,8 @@
     "ltvLow": "注重性价比",
     "lessDetail": "▾ 收起详情",
     "moreDetail": "▸ 渠道、内容和建议",
+    "downloadList": "下载这份名单",
+    "downloadListNote": "在你的浏览器里用你上传的文件生成，不会发送到任何地方。",
     "benchmarkProvenance": "这些客群是针对该业态与地区由模型生成的估算，并非根据其他商家的数据聚合得出。"
   },
   "architecture": {
@@ -839,5 +844,8 @@
     "contactTitle": "需要更高的额度，或者正在开发相关产品？",
     "contactBody": "欢迎联系我们，介绍一下你正在构建的项目。",
     "contactEmailLabel": "info@ai4smbhub.com"
+  },
+  "actionProgress": {
+    "progressLabel": "已完成 {done} / {total}"
   }
 }

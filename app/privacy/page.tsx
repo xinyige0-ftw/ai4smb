@@ -3,10 +3,13 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import NavBar from "@/components/NavBar";
 
-export const metadata: Metadata = {
-  title: "How we handle your data — AI4SMB Insights",
-  description: "How the platform protects customer data uploaded by small business owners.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("privacyPage");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "How the platform protects customer data uploaded by small business owners.",
+  };
+}
 
 interface FlowStep {
   title: string;

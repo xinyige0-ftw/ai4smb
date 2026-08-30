@@ -3,10 +3,13 @@ import { getTranslations } from "next-intl/server";
 import NavBar from "@/components/NavBar";
 import { getImpactStats } from "@/app/api/impact/route";
 
-export const metadata: Metadata = {
-  title: "Impact — AI4SMB Insights",
-  description: "Live usage numbers pulled directly from the AI4SMB Insights platform database.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("impact");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "Live usage numbers pulled directly from the AI4SMB Insights platform database.",
+  };
+}
 
 interface StatCard {
   key: string;

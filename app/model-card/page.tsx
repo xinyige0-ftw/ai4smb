@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import NavBar from "@/components/NavBar";
 
-export const metadata: Metadata = {
-  title: "Model card — AI4SMB Insights",
-  description: "Which models power this platform, and why they are open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("modelCard");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "Which models power this platform, and why they are open.",
+  };
+}
 
 interface ModelRow {
   name: string;

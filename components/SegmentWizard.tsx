@@ -162,6 +162,8 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
           onStartOver={onBack || handleStartOver}
           onReanalyze={handleAnalyze}
           loading={loading}
+          headers={headers}
+          rows={rows}
         />
       </>
     );

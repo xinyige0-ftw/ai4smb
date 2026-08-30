@@ -3,10 +3,13 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import NavBar from "@/components/NavBar";
 
-export const metadata: Metadata = {
-  title: "How AI4SMB Insights is built — AI4SMB Insights",
-  description: "The system that powers the platform, in plain terms.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("architecture");
+  return {
+    title: `${t("title")} — AI4SMB Insights`,
+    description: "The system that powers the platform, in plain terms.",
+  };
+}
 
 interface Row {
   layer: string;

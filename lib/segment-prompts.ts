@@ -25,11 +25,30 @@ export interface ComputedCsvFacts {
   cohorts: { id: string; rule: string; size: number; percentage: number }[];
 }
 
-/** Small, explicit aggregate checks, computed locally over ALL rows, not samples.
- * Only unambiguous known metric headers are eligible. Never return row identifiers.
- * Date cutoff is an operational rule, not a predictive model or a universal definition.
+function quantileOf(sorted: number[], p: number): number {
+  const index = (sorted.length - 1) * p;
+  const low = Math.floor(index);
+  return sorted[low] + (sorted[Math.ceil(index)] - sorted[low]) * (index - low);
+}
+
+interface RowClassification {
+  dateIndex: number;
+  valueIndex: number;
+  values: (number | null)[];
+  lapsed: boolean[];
+  validDates: number;
+  sorted: number[];
+  fence?: number;
+  hasRecency: boolean;
+  hasOrderValue: boolean;
+}
+
+/** Shared row-level classifier behind computeCsvFacts() and
+ * computeCohortMembership(): applies the same 120-day-lapsed and
+ * Q3+1.5*IQR-high-order-value rules to every row, so the two functions can
+ * never drift apart. Only unambiguous known metric headers are eligible.
  */
-export function computeCsvFacts(headers: string[], rows: string[][], now = new Date()): ComputedCsvFacts {
+function classifyRows(headers: string[], rows: string[][], now: Date): RowClassification {
   const asOf = now.toISOString().slice(0, 10);
   const today = Date.parse(`${asOf}T00:00:00Z`);
   const normalize = (name: string) => name.toLowerCase().trim().replace(/[\s-]+/g, "_");
@@ -54,34 +73,95 @@ export function computeCsvFacts(headers: string[], rows: string[][], now = new D
     return Number.isFinite(value) ? value : null;
   });
   const sorted = values.filter((v): v is number => v !== null).sort((a, b) => a - b);
-  const quantile = (p: number) => {
-    const index = (sorted.length - 1) * p;
-    const low = Math.floor(index);
-    return sorted[low] + (sorted[Math.ceil(index)] - sorted[low]) * (index - low);
-  };
-  const facts: ComputedCsvFacts = { asOf, rowCount: rows.length, unit: "rows, not verified unique customers", cohorts: [] };
   const validDates = recencies.filter(v => v !== null).length;
   const lapsed = recencies.map(v => v !== null && v >= 120);
-  if (dateIndex >= 0 && validDates > 0) {
-    facts.recency = { column: headers[dateIndex], validRows: validDates, missingOrInvalidRows: rows.length - validDates, lapsedDays: 120, lapsedRows: lapsed.filter(Boolean).length };
-  }
+  const hasRecency = dateIndex >= 0 && validDates > 0;
   // Avoid labeling outliers from a tiny usable sample or a zero-width IQR.
-  let fence: number | undefined;
-  if (valueIndex >= 0 && sorted.length >= 8 && quantile(0.75) > quantile(0.25)) {
-    fence = quantile(0.75) + 1.5 * (quantile(0.75) - quantile(0.25));
-    facts.orderValue = { column: headers[valueIndex], validRows: sorted.length, missingOrInvalidRows: rows.length - sorted.length, median: quantile(0.5), upperFence: fence, highValueRows: values.filter(v => v !== null && v > fence!).length };
+  const hasOrderValue = valueIndex >= 0 && sorted.length >= 8 && quantileOf(sorted, 0.75) > quantileOf(sorted, 0.25);
+  const fence = hasOrderValue ? quantileOf(sorted, 0.75) + 1.5 * (quantileOf(sorted, 0.75) - quantileOf(sorted, 0.25)) : undefined;
+  return { dateIndex, valueIndex, values, lapsed, validDates, sorted, fence, hasRecency, hasOrderValue };
+}
+
+/** Precedence: lapsed first, then non-lapsed high order value, then the remainder. */
+function cohortIdForRow(c: RowClassification, i: number): "lapsed" | "high_order_value" | "other_rows" {
+  if (c.lapsed[i]) return "lapsed";
+  const v = c.values[i];
+  if (c.hasOrderValue && c.fence !== undefined && v !== null && v > c.fence) return "high_order_value";
+  return "other_rows";
+}
+
+/** Small, explicit aggregate checks, computed locally over ALL rows, not samples.
+ * Only unambiguous known metric headers are eligible. Never return row identifiers.
+ * Date cutoff is an operational rule, not a predictive model or a universal definition.
+ */
+export function computeCsvFacts(headers: string[], rows: string[][], now = new Date()): ComputedCsvFacts {
+  const asOf = now.toISOString().slice(0, 10);
+  const c = classifyRows(headers, rows, now);
+  const facts: ComputedCsvFacts = { asOf, rowCount: rows.length, unit: "rows, not verified unique customers", cohorts: [] };
+  if (c.hasRecency) {
+    facts.recency = { column: headers[c.dateIndex], validRows: c.validDates, missingOrInvalidRows: rows.length - c.validDates, lapsedDays: 120, lapsedRows: c.lapsed.filter(Boolean).length };
+  }
+  if (c.hasOrderValue && c.fence !== undefined) {
+    facts.orderValue = { column: headers[c.valueIndex], validRows: c.sorted.length, missingOrInvalidRows: rows.length - c.sorted.length, median: quantileOf(c.sorted, 0.5), upperFence: c.fence, highValueRows: c.values.filter(v => v !== null && v > c.fence!).length };
   }
   const add = (id: string, rule: string, size: number) => {
     if (size > 0) facts.cohorts.push({ id, rule, size, percentage: Math.round(size / rows.length * 1000) / 10 });
   };
-  const lapsedCount = lapsed.filter(Boolean).length;
-  const highCount = values.filter((v, i) => !lapsed[i] && v !== null && fence !== undefined && v > fence).length;
+  const lapsedCount = c.lapsed.filter(Boolean).length;
+  const highCount = c.values.filter((v, i) => !c.lapsed[i] && v !== null && c.fence !== undefined && v > c.fence!).length;
   if (facts.recency || facts.orderValue) {
     add("lapsed", `Valid last activity at least 120 days before ${asOf}`, lapsedCount);
     add("high_order_value", "Not in lapsed cohort; valid average order value above Q3 + 1.5 * IQR", highCount);
     add("other_rows", "Remaining rows, including missing/invalid metrics; no inferred shared persona", rows.length - lapsedCount - highCount);
   }
   return facts;
+}
+
+export interface CohortMembership {
+  cohortId: string;
+  rowIndices: number[];
+}
+
+/**
+ * Recomputes, entirely from headers/rows already parsed in the browser, which
+ * row belongs to which cohort — using the exact same rules and precedence as
+ * computeCsvFacts(). Unlike computeCsvFacts(), this DOES return row
+ * identifiers (indices into `rows`); it exists so a browser-only "download
+ * this list" action can rebuild membership without ever sending row data to
+ * the server. Only cohorts with at least one member are returned, matching
+ * computeCsvFacts()'s non-empty cohorts exactly (same ids, same order, same
+ * sizes).
+ */
+export function computeCohortMembership(headers: string[], rows: string[][], now = new Date()): CohortMembership[] {
+  const c = classifyRows(headers, rows, now);
+  if (!c.hasRecency && !c.hasOrderValue) return [];
+  const buckets: Record<"lapsed" | "high_order_value" | "other_rows", number[]> = {
+    lapsed: [],
+    high_order_value: [],
+    other_rows: [],
+  };
+  rows.forEach((_, i) => buckets[cohortIdForRow(c, i)].push(i));
+  return (["lapsed", "high_order_value", "other_rows"] as const)
+    .filter((id) => buckets[id].length > 0)
+    .map((id) => ({ cohortId: id, rowIndices: buckets[id] }));
+}
+
+const FORMULA_PREFIX_RE = /^[=+\-@]/;
+
+/**
+ * RFC4180 CSV serializer. Quotes any field containing a comma, double quote
+ * or newline (doubling embedded quotes), and prefixes values starting with
+ * =, +, - or @ with a single quote so spreadsheet apps (Excel, Sheets) never
+ * interpret an untrusted cell value as a formula.
+ */
+export function toCsv(headers: string[], rows: string[][]): string {
+  const field = (value: string): string => {
+    let v = value ?? "";
+    if (FORMULA_PREFIX_RE.test(v)) v = "'" + v;
+    if (/[",\r\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  };
+  return [headers, ...rows].map((row) => row.map(field).join(",")).join("\r\n");
 }
 
 /**
@@ -382,6 +462,11 @@ export function groundCsvResult(result: Record<string, unknown>, facts?: Compute
       const model = models.find(m => m && typeof m === "object" && m.cohortId === cohort.id) ?? {};
       const recommendations = strings(model.recommendations);
       const fallback = zh ? `先复核这 ${cohort.size} 行记录，再选择已获授权的渠道测试小规模营销。` : `Review these ${cohort.size} rows, then test a small campaign only through consented channels.`;
+      const leadLine = zh
+        ? `先从这 ${cohort.size} 行开始（占文件的 ${cohort.percentage}%）。`
+        : `Start with these ${cohort.size} rows (${cohort.percentage}% of the file).`;
+      const body = recommendations.length ? recommendations : [fallback];
+      const withLead = body[0] === leadLine ? body : [leadLine, ...body];
       const creative: Record<string, string> = {};
       for (const key of ["messagingAngle", "offerSuggestion", "toneGuidance"]) {
         if (typeof model[key] === "string") creative[key] = model[key];
@@ -395,13 +480,45 @@ export function groundCsvResult(result: Record<string, unknown>, facts?: Compute
         color: ["amber", "purple", "cyan"][i % 3],
         description: rules[cohort.id] ?? cohort.rule,
         characteristics: [rules[cohort.id] ?? cohort.rule, zh ? `${cohort.size} 行，占 ${cohort.percentage}%` : `${cohort.size} rows (${cohort.percentage}%)`],
-        recommendations: recommendations.length ? recommendations : [fallback],
+        recommendations: withLead,
         reasoning: note,
       };
     }),
     quickWins: strings(result.quickWins),
     dataQuality: note,
   };
+}
+
+const UNFOUNDED_SIZE_NOTE = {
+  en: "No customer file was analysed for this result, so group sizes are not counted. Percentages are the model's estimates.",
+  zh: "本次结果没有分析任何客户数据文件，因此各组人数无法计数，百分比是模型的估计值。",
+} as const;
+
+/**
+ * For modes with no uploaded dataset (benchmark/interview/reviews/social),
+ * the model is still asked for a `size` field per its output schema and will
+ * invent a specific customer count with nothing behind it. This strips
+ * `size` from every segment after generation — never touches the prompt —
+ * and appends a short qualifier to `dataQuality` so the UI never displays a
+ * fabricated absolute count. Percentages and every other field pass through
+ * unchanged. Idempotent: re-applying does not duplicate the note.
+ */
+export function stripUnfoundedSizes(result: Record<string, unknown>, locale?: string): Record<string, unknown> {
+  const note = locale === "zh" ? UNFOUNDED_SIZE_NOTE.zh : UNFOUNDED_SIZE_NOTE.en;
+  const segments = Array.isArray(result.segments) ? result.segments : [];
+  const strippedSegments = segments.map((seg) => {
+    if (!seg || typeof seg !== "object") return seg;
+    const rest = { ...(seg as Record<string, unknown>) };
+    delete rest.size;
+    return rest;
+  });
+  const existingDataQuality = typeof result.dataQuality === "string" ? result.dataQuality : "";
+  const dataQuality = existingDataQuality.includes(note)
+    ? existingDataQuality
+    : existingDataQuality
+      ? `${existingDataQuality} ${note}`
+      : note;
+  return { ...result, segments: strippedSegments, dataQuality };
 }
 
 export function getSegmentSystemPrompt(locale?: string): string {

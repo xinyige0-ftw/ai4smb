@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import Papa from 'papaparse';
-import {groundCsvResult,computeCsvFacts,summarizeCsv,stripPiiFromSummary,buildSegmentPrompt} from '../lib/segment-prompts.ts';
+import {groundCsvResult,computeCsvFacts,summarizeCsv,stripPiiFromSummary,buildSegmentPrompt,stripUnfoundedSizes} from '../lib/segment-prompts.ts';
 const now=new Date('2026-08-29T12:00:00Z');
 const parsed=Papa.parse(fs.readFileSync(new URL('./fixtures/sample-customers-cafe.csv',import.meta.url),'utf8').trim(),{skipEmptyLines:true}).data;
 const facts=computeCsvFacts(parsed[0],parsed.slice(1),now);
@@ -40,9 +40,63 @@ assert.deepEqual(guarded.segments.map(s=>s.size),[20,6,62]);
 assert.deepEqual(guarded.segments.map(s=>s.percentage),[22.7,6.8,70.5]);
 assert.ok(!guarded.summary.includes("invented"));
 assert.ok(!JSON.stringify(guarded).includes("999"));
-assert.equal(guarded.segments[0].recommendations[0],"Test a small win-back campaign");
-assert.equal(guarded.segments[1].recommendations.length,1);
+
+// Change 3: every cohort's recommendations lead with a deterministic,
+// count-bearing line, followed by whatever the model supplied (or the
+// existing fallback line when the model supplied nothing for that cohort).
+assert.equal(guarded.segments[0].recommendations[0],"Start with these 20 rows (22.7% of the file).");
+assert.equal(guarded.segments[0].recommendations[1],"Test a small win-back campaign");
+assert.equal(guarded.segments[0].recommendations.length,2);
+assert.equal(guarded.segments[1].recommendations[0],"Start with these 6 rows (6.8% of the file).");
+assert.equal(guarded.segments[1].recommendations.length,2, "cohort with no model recommendations still gets the lead line plus the existing fallback");
+assert.equal(guarded.segments[2].recommendations[0],"Start with these 62 rows (70.5% of the file).");
+
+// Applying groundCsvResult a second time (e.g. accidental double-wrap) must
+// not duplicate the lead line.
+const reGuarded=groundCsvResult(guarded,facts);
+assert.equal(reGuarded.segments[0].recommendations[0],"Start with these 20 rows (22.7% of the file).");
+assert.equal(reGuarded.segments[0].recommendations.filter(r=>r==="Start with these 20 rows (22.7% of the file).").length,1);
+assert.deepEqual(reGuarded.segments[0].recommendations,guarded.segments[0].recommendations);
+
+const guardedZh=groundCsvResult({segments:[{cohortId:"lapsed",recommendations:["先做一次小规模挽回测试"]}],summary:"",quickWins:[]},facts,"zh");
+assert.equal(guardedZh.segments[0].recommendations[0],"先从这 20 行开始（占文件的 22.7%）。");
+assert.equal(guardedZh.segments[0].recommendations[1],"先做一次小规模挽回测试");
+
 assert.ok(groundCsvResult({},facts,"zh").summary.includes("88 行"));
 const legacy={summary:"legacy",segments:[]};
 assert.equal(groundCsvResult(legacy),legacy);
+
+// ─────────────────────────────────────────────────────────────────
+// Change 2: stripUnfoundedSizes() removes invented `size` fields for modes
+// with no uploaded dataset, keeping percentages and every other field intact.
+console.log('\nstripUnfoundedSizes assertions');
+const rawResult = {
+  summary: "Two segments emerged.",
+  segments: [
+    { name: "Regulars", percentage: 60, size: 240, color: "blue", recommendations: ["Do X"] },
+    { name: "Occasional", percentage: 40, size: 160, color: "green", recommendations: ["Do Y"] },
+  ],
+  quickWins: ["Send a promo"],
+};
+const stripped = stripUnfoundedSizes(rawResult, "en");
+assert.ok(stripped.segments.every(s=>!("size" in s)), "size field removed from every segment");
+assert.deepEqual(stripped.segments.map(s=>s.percentage),[60,40], "percentages retained");
+assert.deepEqual(stripped.segments.map(s=>s.name),["Regulars","Occasional"], "other fields (name) untouched");
+assert.deepEqual(stripped.segments.map(s=>s.recommendations),[["Do X"],["Do Y"]], "other fields (recommendations) untouched");
+assert.equal(stripped.summary,"Two segments emerged.", "summary untouched");
+assert.deepEqual(stripped.quickWins,["Send a promo"], "quickWins untouched");
+assert.equal(stripped.dataQuality,"No customer file was analysed for this result, so group sizes are not counted. Percentages are the model's estimates.");
+
+const withExistingDataQuality = stripUnfoundedSizes({...rawResult, dataQuality: "Sample skews toward loyalty members."}, "en");
+assert.ok(withExistingDataQuality.dataQuality.startsWith("Sample skews toward loyalty members."), "existing dataQuality text preserved");
+assert.ok(withExistingDataQuality.dataQuality.includes("No customer file was analysed"), "qualifier appended to existing dataQuality");
+
+const doubleApplied = stripUnfoundedSizes(withExistingDataQuality, "en");
+const noteOccurrences = doubleApplied.dataQuality.split("No customer file was analysed for this result").length - 1;
+assert.equal(noteOccurrences,1, "dataQuality note is not duplicated on a second application");
+
+const strippedZh = stripUnfoundedSizes(rawResult, "zh");
+assert.equal(strippedZh.dataQuality,"本次结果没有分析任何客户数据文件，因此各组人数无法计数，百分比是模型的估计值。", "Chinese qualifier is correct");
+assert.ok(strippedZh.segments.every(s=>!("size" in s)), "ZH: size field removed from every segment");
+
 console.log('CSV facts and result guard assertions passed; known fixture cohorts = 20 / 6 / 62.');

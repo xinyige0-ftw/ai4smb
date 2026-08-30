@@ -97,6 +97,8 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
           onStartOver={onBack}
           onReanalyze={handleAnalyze}
           loading={loading}
+          headers={previewHeaders}
+          rows={previewRows}
         />
       </>
     );

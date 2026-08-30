@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
 import ReviewPrompt, { type ReviewSubmitData } from "./ReviewPrompt";
-import { formatSegmentReport, downloadText, copyText } from "@/lib/export";
+import { formatSegmentReport, downloadText, downloadCsv, copyText } from "@/lib/export";
+import { computeCohortMembership, toCsv, type CohortMembership } from "@/lib/segment-prompts";
 
 interface ChannelRec {
   channel: string;
@@ -19,12 +20,13 @@ interface AvoidChannel {
 }
 
 interface Segment {
+  cohortId?: string;
   name: string;
   percentage: number;
   color: string;
   description: string;
   characteristics: string[];
-  size: number;
+  size?: number;
   recommendations: string[];
   propensityScore?: "high" | "medium" | "low";
   lifetimeValueTier?: "high" | "medium" | "low";
@@ -54,6 +56,12 @@ interface SegmentResultsProps {
   loading: boolean;
   toolUsed?: string;
   benchmarkMode?: boolean;
+  /** Original parsed CSV, kept only in the browser. When both are present
+   * and a segment carries a cohortId, segment cards can rebuild the exact
+   * row membership locally and offer a "download this list" action —
+   * nothing here is ever sent to the server. */
+  headers?: string[];
+  rows?: string[][];
 }
 
 const COLOR_MAP: Record<string, { bg: string; border: string; text: string; bar: string }> = {
@@ -91,7 +99,19 @@ function TierBadge({ label, value, tipKey, t }: { label: string; value?: string;
   );
 }
 
-function SegmentCard({ segment, initialExpanded = false }: { segment: Segment; initialExpanded?: boolean }) {
+function SegmentCard({
+  segment,
+  initialExpanded = false,
+  headers,
+  rows,
+  membership,
+}: {
+  segment: Segment;
+  initialExpanded?: boolean;
+  headers?: string[];
+  rows?: string[][];
+  membership?: CohortMembership[];
+}) {
   const [expanded, setExpanded] = useState(initialExpanded);
   const [reasoningExpanded, setReasoningExpanded] = useState(false);
   const router = useRouter();
@@ -99,6 +119,21 @@ function SegmentCard({ segment, initialExpanded = false }: { segment: Segment; i
   const c = getColor(segment.color);
 
   const hasCampaignData = !!(segment.bestChannels?.length || segment.messagingAngle);
+
+  const cohortRows = useMemo(() => {
+    if (!headers || !rows || !segment.cohortId || !membership) return null;
+    const found = membership.find((m) => m.cohortId === segment.cohortId);
+    if (!found || found.rowIndices.length === 0) return null;
+    return found.rowIndices.map((i) => rows[i]);
+  }, [headers, rows, segment.cohortId, membership]);
+
+  function handleDownloadList() {
+    if (!headers || !cohortRows) return;
+    const csv = toCsv(headers, cohortRows);
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    const slug = (segment.cohortId ?? "segment").replace(/_/g, "-");
+    downloadCsv(csv, `${slug}-customers-${dateStamp}.csv`);
+  }
 
   function handleCampaign() {
     const prefill = {
@@ -124,7 +159,9 @@ function SegmentCard({ segment, initialExpanded = false }: { segment: Segment; i
         </div>
         <div className="shrink-0 text-right">
           <div className={`text-xl font-bold sm:text-2xl ${c.text}`}>{segment.percentage}%</div>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">{t("customers", { size: segment.size })}</div>
+          {typeof segment.size === "number" && (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">{t("customers", { size: segment.size })}</div>
+          )}
         </div>
       </div>
 
@@ -157,6 +194,23 @@ function SegmentCard({ segment, initialExpanded = false }: { segment: Segment; i
           </span>
         ))}
       </div>
+
+      {/* Download this cohort's rows — only when the raw uploaded rows are
+          still in memory client-side and this segment maps to a computed
+          cohort. Nothing here ever touches the network. */}
+      {cohortRows && (
+        <div className="mt-3">
+          <button
+            onClick={handleDownloadList}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition-colors ${c.border} ${c.text} hover:bg-white/60 dark:hover:bg-zinc-800/40`}
+          >
+            {"⬇ "}{t("downloadList")}
+          </button>
+          <p className="mt-1 text-center text-[11px] leading-snug text-zinc-400 dark:text-zinc-500">
+            {t("downloadListNote")}
+          </p>
+        </div>
+      )}
 
       {/* Expand toggle — styled as a prominent button */}
       <button
@@ -308,8 +362,14 @@ export default function SegmentResults({
   loading,
   toolUsed,
   benchmarkMode,
+  headers,
+  rows,
 }: SegmentResultsProps) {
   const t = useTranslations("segmentResults");
+  const membership = useMemo(
+    () => (headers && rows ? computeCohortMembership(headers, rows) : undefined),
+    [headers, rows]
+  );
   const [copied, setCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [showReview, setShowReview] = useState(false);
@@ -428,7 +488,14 @@ export default function SegmentResults({
       {/* Segment cards */}
       <div className="flex flex-col gap-4">
         {result.segments.map((seg, idx) => (
-          <SegmentCard key={seg.name} segment={seg} initialExpanded={idx === 0} />
+          <SegmentCard
+            key={seg.name}
+            segment={seg}
+            initialExpanded={idx === 0}
+            headers={headers}
+            rows={rows}
+            membership={membership}
+          />
         ))}
       </div>
 
