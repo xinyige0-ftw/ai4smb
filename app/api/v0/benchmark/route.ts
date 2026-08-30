@@ -2,6 +2,7 @@ import { BUSINESS_TYPES } from "@/lib/prompts";
 import { buildBenchmarkPrompt, getInsightSystemPrompt, type BenchmarkInput } from "@/lib/insight-prompts";
 import { generateJSON, getDefaultProvider } from "@/lib/ai-provider";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { stripUnfoundedSizes } from "@/lib/segment-prompts";
 
 /**
  * GET /api/v0/benchmark — public API. Returns model-generated industry
@@ -68,7 +69,9 @@ export async function GET(req: Request) {
       { temperature: 0.7, maxTokens: 3000 },
       getDefaultProvider()
     );
-    const result = JSON.parse(response.text || "{}");
+    // No customer file underlies a benchmark response, so member counts cannot be
+    // counted. Withhold `size` rather than emit a model guess or a misleading zero.
+    const result = stripUnfoundedSizes(JSON.parse(response.text || "{}"));
 
     return jsonResponse({
       industry,

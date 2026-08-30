@@ -35,7 +35,6 @@ const RESPONSE_EXAMPLE = `{
         "color": "blue",
         "description": "Remote workers and freelancers who treat the cafe as a daytime office.",
         "characteristics": ["Visits on weekdays", "Stays 2+ hours", "Orders one drink, refills often"],
-        "size": 0,
         "recommendations": ["Offer a weekday punch card", "Add reliable Wi-Fi and outlets as a stated amenity"],
         "propensityScore": "medium",
         "lifetimeValueTier": "medium",
@@ -53,7 +52,7 @@ const RESPONSE_EXAMPLE = `{
       }
     ],
     "quickWins": ["Post weekday hours and Wi-Fi availability on Google Business Profile"],
-    "dataQuality": "This is a typical pattern for cafe businesses in Austin, TX, not a measurement of any specific business. Upload your own data for personalized segments."
+    "dataQuality": "This is a typical pattern for cafe businesses in Austin, TX, not a measurement of any specific business. Upload your own data for personalized segments. No customer data file was analyzed for this result, so segment sizes cannot be counted and the percentages are the model's estimates."
   },
   "meta": {
     "source": "model-generated",
