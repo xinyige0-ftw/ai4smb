@@ -22,5 +22,12 @@ try {
  assert.equal(JSON.parse((await generateWithGroq('test','test',{jsonMode:true})).text).ok,true);assert.equal(requests.length,2);
  responses=[{body:{choices:[{finish_reason:'stop',message:{content:'ordinary text'}}]}}];requests=[];
  assert.equal((await generateWithGroq('test','test',{jsonMode:false})).text,'ordinary text');assert.equal(requests.length,1);
+ responses=[{body:good}];requests=[];
+ const schema={type:'object',properties:{ok:{type:'boolean'}},required:['ok'],additionalProperties:false};
+ await generateWithGroq('test','test',{jsonMode:true,jsonSchema:schema},'openai/gpt-oss-120b');
+ assert.equal(requests[0].response_format.type,'json_schema');assert.equal(requests[0].response_format.json_schema.strict,true);
+ responses=[{body:good},{body:good}];requests=[];let checks=0;
+ await generateWithGroq('test','test',{jsonMode:true,validateJson:()=>{if(checks++===0)throw new SyntaxError('Missing field');}});
+ assert.equal(checks,2);assert.equal(requests.length,2);
  console.log('JSON retry regression passed: one bounded retry, no auth/model retries, no failed-output disclosure.');
 } finally {Groq.prototype.post=originalPost;}

@@ -60,6 +60,7 @@ export default function GenerateWizard() {
 
   async function handleGenerate() {
     if (!goal) return;
+    setStep(2); // Keep progress and errors visible when regenerating from results.
     setLoading(true);
     setError("");
     setCampaign(null);

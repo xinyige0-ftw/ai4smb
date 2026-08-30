@@ -1,3 +1,4 @@
+import { campaignSchema, validateCampaign } from "@/lib/campaign-schema";
 import { buildPrompt, getSystemPrompt, type GenerateInput } from "@/lib/prompts";
 import { getOrCreateSession, saveCampaign, extractSessionMeta } from "@/lib/supabase";
 import { getUser } from "@/lib/auth";
@@ -34,11 +35,12 @@ export async function POST(req: Request) {
     const response = await generateJSON(
       getSystemPrompt(locale),
       prompt,
-      { temperature: 0.7, maxTokens },
+      { temperature: 0.7, maxTokens, jsonSchema: campaignSchema, validateJson: validateCampaign },
       getDefaultProvider()
     );
     const text = response.text || "{}";
     const campaign = JSON.parse(text);
+    validateCampaign(campaign);
 
     console.log("GENERATE:", {
       anonId: anonId || "unknown",

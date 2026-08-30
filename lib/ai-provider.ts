@@ -5,6 +5,8 @@ export interface LLMOptions {
   temperature?: number;
   maxTokens?: number;
   jsonMode?: boolean;
+  jsonSchema?: Record<string, unknown>;
+  validateJson?: (value: unknown) => void;
 }
 
 export interface LLMResponse {
@@ -141,19 +143,23 @@ export async function generateWithGroq(
     try {
       const completion = await groq.chat.completions.create({
         model,
+        ...(options.jsonSchema && ["openai/gpt-oss-120b", "openai/gpt-oss-20b"].includes(model) ? { reasoning_effort: "low" as const } : {}),
         messages: [
           { role: "system", content: system + (attempt ? "\nReturn one complete valid JSON object. Keep copy concise, escape quotes correctly, and close every array and object. Do not omit requested channels." : "") },
           { role: "user", content: user },
         ],
         temperature: attempt ? 0.2 : (options.temperature ?? 0.7),
         max_tokens: attempt ? Math.min(8000, Math.max(options.maxTokens ?? 3000, 4500)) : (options.maxTokens ?? 3000),
-        ...(options.jsonMode ? { response_format: { type: "json_object" as const } } : {}),
+        ...(options.jsonMode ? { response_format: options.jsonSchema && ["openai/gpt-oss-120b", "openai/gpt-oss-20b"].includes(model)
+          ? { type: "json_schema" as const, json_schema: { name: "campaign", strict: true, schema: options.jsonSchema } }
+          : { type: "json_object" as const } } : {}),
       });
       const choice = completion.choices[0];
       const text = choice?.message?.content || "";
       if (options.jsonMode) {
         if (choice?.finish_reason === "length") throw new SyntaxError("Incomplete JSON output");
-        JSON.parse(text);
+        const parsed = JSON.parse(text);
+        options.validateJson?.(parsed);
       }
       return { text, provider: "groq", model, latencyMs: Date.now() - start };
     } catch (error) {
@@ -164,7 +170,7 @@ export async function generateWithGroq(
       );
       if (!invalidJson) throw error;
       if (attempt === 0) {
-        console.warn("[ai-provider] Invalid JSON output; retrying once with a concise response request");
+        console.warn("[ai-provider] Invalid JSON output; retrying once", { reason: error instanceof SyntaxError ? error.message : code });
         continue;
       }
       // Do not expose the provider's failed_generation payload to logs or clients.
