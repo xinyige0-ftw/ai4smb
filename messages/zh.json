@@ -13,9 +13,13 @@
     "history": "历史记录",
     "segments": "客户分群",
     "campaigns": "营销方案",
+    "dashboardNav": "我的营销",
     "profile": "个人中心",
     "errorGeneric": "出了点问题。",
-    "networkError": "网络错误，请重试。"
+    "networkError": "网络错误，请重试。",
+    "poweredByPrefix": "由",
+    "poweredByModel": "gpt-oss-120b",
+    "poweredBySuffix": "驱动 —— 一个开放权重模型"
   },
   "landing": {
     "badge": "专为小企业主打造",
@@ -59,6 +63,10 @@
     "bottomCtaTitle": "今天就免费开始。",
     "bottomCtaDesc": "已有数千名小企业主在用AI4SMB找到最佳客户、写出更好的营销内容。免费、快速，不到两分钟。",
     "footerDesc": "面向小企业的免费AI营销工具。",
+    "footerArchitectureLink": "系统架构",
+    "footerPrivacyLink": "隐私说明",
+    "footerImpactLink": "平台数据",
+    "footerApiDocsLink": "开放接口",
     "testimonialLabel": "用户评价",
     "testimonialTitle": "其他老板怎么说"
   },
@@ -348,7 +356,22 @@
     "totalCampaigns": "营销方案总数",
     "totalSegments": "分群分析总数",
     "notSignedIn": "你还没登录。",
-    "signInPrompt": "登录后可以跨设备保存你的成果并查看使用情况。"
+    "signInPrompt": "登录后可以跨设备保存你的成果并查看使用情况。",
+    "dataSectionTitle": "你的数据",
+    "dataSectionDesc": "导出范围包括个人资料、关联会话、营销方案和分群记录。删除会移除这些记录，但不会删除认证账户，也不承诺清除所有日志或备份。",
+    "dataSignInRequired": "登录后才能导出或删除你的数据。",
+    "exportButton": "导出我的数据",
+    "exporting": "正在准备导出文件…",
+    "exportError": "导出数据失败，请重试。",
+    "deleteButton": "删除我的账户数据",
+    "deleteWarning": "此操作会永久删除你的营销方案、客群分析、会话记录和个人资料，且无法撤销。认证账户仍保留，此操作不等于完整注销账户。",
+    "deleteConfirmLabel": "输入 DELETE 以确认",
+    "deleteConfirmPlaceholder": "DELETE",
+    "deleteConfirmButton": "永久删除我的数据",
+    "deleteCancelButton": "取消",
+    "deleting": "正在删除…",
+    "deleteError": "删除数据失败，请重试。",
+    "deleteSuccess": "你的数据已删除，正在退出登录…"
   },
   "review": {
     "promptTitle": "体验怎么样？",
@@ -564,6 +587,257 @@
     "ltvMed": "中等消费",
     "ltvLow": "注重性价比",
     "lessDetail": "▾ 收起详情",
-    "moreDetail": "▸ 渠道、内容和建议"
+    "moreDetail": "▸ 渠道、内容和建议",
+    "benchmarkProvenance": "这些客群是针对该业态与地区由模型生成的估算，并非根据其他商家的数据聚合得出。"
+  },
+  "architecture": {
+    "title": "AI4SMB 智能营销是如何搭建的",
+    "subtitle": "用大白话讲清楚支撑这个平台的系统。",
+    "tableLayer": "层级",
+    "tableImplementation": "实现方式",
+    "tableWhatItDoes": "作用",
+    "rows": [
+      {
+        "layer": "展示层",
+        "implementation": "基于 Next.js 16（App Router）与 React 19、Tailwind CSS 构建，服务端渲染，部署在全球边缘网络上；支持中英文双语。",
+        "what": "通过普通浏览器即可使用，无需安装或注册账户。"
+      },
+      {
+        "layer": "应用服务层",
+        "implementation": "一组无状态 API 服务，覆盖内容生成、客户分群、对话式策略顾问、帖子排版、图片生成与评价抓取。",
+        "what": "各项能力由独立 API 路由组织；共享服务故障仍可能影响多个功能。"
+      },
+      {
+        "layer": "推理层",
+        "implementation": "模型供应商抽象层，默认路由到运行在 LPU 推理硬件上的开放权重模型 gpt-oss-120b，并以 Google Gemini 2.5 Flash / Pro 作为按请求切换的备用路线。",
+        "what": "不依赖任何单一模型厂商；各模型可在同一接口后互换。"
+      },
+      {
+        "layer": "成本治理",
+        "implementation": "Gemini 设有进程内每分钟及每日请求上限，遇到配额错误时可回退至 Groq；生成与分群分别设有内存中的会话限流。",
+        "what": "帮助控制请求量，但不构成全局费用上限，也不保证所有错误都能自动切换。"
+      },
+      {
+        "layer": "数据层",
+        "implementation": "使用 PostgreSQL（Supabase），每张表都启用行级安全策略；数据库结构通过迁移脚本管理；采用匿名会话模型，也支持通过魔法链接登录的账户。",
+        "what": "租户之间相互隔离，权限最小化；无需账户即可使用是默认模式。"
+      },
+      {
+        "layer": "客户端数据处理",
+        "implementation": "CSV 与 POS 数据在浏览器中解析，移除已识别的身份信息列后，发送列统计、计算得到的分组数量及脱敏样本行进行分析。",
+        "what": "原始文件不会上传。启发式脱敏可能遗漏陌生列名或自由文本中的身份信息，请在分析前检查输入。"
+      }
+    ],
+    "roadmapTitle": "接下来的方向",
+    "roadmap": [
+      "在 vLLM 上实现自托管推理，让模型服务运行在我们自己运维的基础设施上，而不是依赖第三方 API。",
+      "针对营销场景微调的开放权重模型，使用参数高效适配器，在已获得同意、经过脱敏处理的数据上训练。",
+      "自动检测并遮蔽自由文本输入中残留的身份信息。",
+      "为跨企业行业基准数据引入差分隐私技术。",
+      "接受独立的安全评估，包括 SOC 2 审计。"
+    ],
+    "footerLinks": "了解更多关于<privacy>客户数据如何被处理</privacy>以及<model>支撑本平台的模型</model>的信息。"
+  },
+  "privacyNotice": {
+    "heading": "已在你的浏览器中处理",
+    "bodyColumns": "以下列包含个人信息，已在发送前移除：{columns}。",
+    "bodyCounts": "已遮蔽 {emails} 个邮箱地址和 {phones} 个电话号码。",
+    "bodyNone": "本文件中未检测到包含个人信息的列。",
+    "bodyScope": "只有列的统计信息和经过脱敏的样本数据会被发送用于分析。你的原始客户名单不会离开这台设备。",
+    "bodyNoTraining": "你的数据不会被用于训练任何模型。",
+    "linkText": "了解我们如何处理你的数据"
+  },
+  "privacyPage": {
+    "title": "我们如何处理你的数据",
+    "subtitle": "我们尽量减少发送用于分析的数据，并说明保护措施及其局限。",
+    "flowTitle": "上传文件后会发生什么",
+    "flowSteps": [
+      {
+        "title": "你的浏览器",
+        "desc": "文件在你自己的设备上被读取和解析。"
+      },
+      {
+        "title": "身份信息字段被移除",
+        "desc": "移除已识别的姓名、邮箱和电话列，并遮蔽文本中可检测到的邮箱和电话格式。"
+      },
+      {
+        "title": "发送最小化摘要",
+        "desc": "列的分布情况、抽样的非身份信息值，以及派生出的分群特征。"
+      },
+      {
+        "title": "返回分析结果",
+        "desc": "返回分群与建议。原始文件保留在你的设备上，但启发式脱敏可能遗漏残留身份信息。"
+      }
+    ],
+    "controlsTitle": "目前已落实的措施",
+    "controls": [
+      {
+        "lead": "客户端处理与个人信息最小化。",
+        "body": "CSV 与 POS 数据在浏览器中解析，移除已识别的身份信息列后，发送列统计、计算得到的分组数量及脱敏样本行进行分析。 原始文件不会上传。启发式脱敏可能遗漏陌生列名或自由文本中的身份信息，请在分析前检查输入。"
+      },
+      {
+        "lead": "默认匿名身份。",
+        "body": "无需账户即可完整使用本平台。默认的记录单位是匿名会话标识符，而不是具体的人；登录是可选项，其唯一作用是让你能取回自己保存过的内容。"
+      },
+      {
+        "lead": "数据库层面的租户隔离。",
+        "body": "数据库脚本启用行级安全策略。服务端 service-role 请求可绕过 RLS，因此账户接口还会按已认证用户限定查询范围。"
+      },
+      {
+        "lead": "最小权限的服务凭证。",
+        "body": "高权限密钥只存在于服务端，从不暴露给浏览器；客户端只持有一个受限的公开密钥。"
+      },
+      {
+        "lead": "限流与滥用防护。",
+        "body": "生成和分群请求携带会话标识时会执行内存限流，公开基准 API 另设上限。这些措施不构成全面的滥用防护保证。"
+      },
+      {
+        "lead": "透明披露。",
+        "body": "界面会在上传环节用通俗的语言说明：哪些内容在本地处理，哪些会被发送，哪些会被保留。"
+      },
+      {
+        "lead": "不用你的数据训练模型。",
+        "body": "平台不使用上传数据运行训练或微调流程。分析请求会发送至已配置的第三方推理服务，其数据处理受相应服务条款及账户设置约束。"
+      },
+      {
+        "lead": "数据导出与删除。",
+        "body": "导出范围包括个人资料、关联会话、营销方案和分群记录。删除会移除这些记录，但不会删除认证账户，也不承诺清除所有日志或备份。"
+      }
+    ],
+    "footerLinks": "在<arch>系统架构</arch>页可以看到这些措施是如何落实的，以及我们在安全与隐私上接下来要做的事。"
+  },
+  "modelCard": {
+    "title": "模型说明",
+    "subtitle": "驱动本平台的是哪些模型，以及为什么选择开放权重模型。",
+    "modelsTitle": "正在使用的模型",
+    "tableModel": "模型",
+    "tableRole": "角色",
+    "tableWeights": "权重",
+    "models": [
+      {
+        "name": "gpt-oss-120b（OpenAI）",
+        "role": "主力生成模型：客户分群、营销方案、对话式策略顾问、帖子排版",
+        "weights": "开放权重（Apache 2.0）"
+      },
+      {
+        "name": "Gemini 2.5 Flash / Pro",
+        "role": "备用路线，按请求选择，用于扩容和故障切换",
+        "weights": "闭源专有（Google）"
+      }
+    ],
+    "whyOpenTitle": "为什么选择开放权重模型",
+    "whyOpen": [
+      "开放权重模型为控制推理成本、维持核心功能免费提供了更多选择。",
+      "供应商抽象层可降低对单一托管模型的依赖，但供应商仍可能调整价格或停止服务。",
+      "模型本身、权重和行为都可以被审计，这正是平台可解释性承诺的基础。"
+    ],
+    "selectionTitle": "模型如何被选定",
+    "selectionP1": "得益于模型供应商抽象层，替换模型只需要修改配置，而不需要重写代码。",
+    "selectionP2": "代码库包含模型对比脚本，但尚未建立覆盖所有候选模型系列的完整营销质量评估。",
+    "explainabilityTitle": "可解释性",
+    "explainabilityBody": "提示词要求建议附带理由，但这本身不能验证理由是否属实。对已识别的 CSV 日期与客单价字段，代码独立计算并保留分组数量和规则，不依赖模型生成的营销建议。其他输入及所有创意建议仍需人工审阅。",
+    "limitationsTitle": "已知局限",
+    "limitations": [
+      "输出内容为AI生成文本，发布前应经过人工审阅。",
+      "针对某类业务和地区给出的基准分群是估算结果，并非对具体某家企业的实测数据。",
+      "除非业主自行提供，平台无法获取企业的实时广告投放数据。",
+      "营销文案中生成的具体数字和统计信息，业主应自行核实。"
+    ],
+    "trainingDataTitle": "训练数据",
+    "trainingDataBody": "平台不使用上传数据运行训练或微调流程。分析请求会发送至已配置的第三方推理服务，其数据处理受相应服务条款及账户设置约束。"
+  },
+  "impact": {
+    "title": "真实影响，而非预测数字",
+    "subtitle": "以下数据直接来自 AI4SMB 智能营销的平台数据库——除特别标注外，均非估算或预测。",
+    "statCampaigns": "已生成营销方案",
+    "statSegments": "已完成客户分析",
+    "statBusinessTypes": "覆盖的行业类型",
+    "statLocations": "覆盖的地区数量",
+    "statAverageRating": "平均评分",
+    "statNps": "净推荐值 (NPS)",
+    "ratingOutOf": "/ 5",
+    "timeEstimateTitle": "预计节省的时间",
+    "hoursValue": "已节省 {count} 小时",
+    "timeEstimateDisclaimer": "这是估算值。假设每生成一份营销方案节省 3 小时工作量，每完成一次客户分析节省 2 小时。这不是实测数据。",
+    "howProducedTitle": "这些数字是如何得出的",
+    "howProducedBody": "以上计数直接来自平台数据库——每一份营销方案、每一次客户分析、每一种行业类型和每一个地区,都对应数据库中真实的一行记录。平均评分和净推荐值来自使用过本平台的用户提交的评价。本页除上方明确标注为估算的节省时间数字外,没有任何数字是模型推算或预测得出的。",
+    "emptyNote": "目前平台数据还不足以展示这些数字,请稍后再来查看。",
+    "updatedNote": "更新时间 {date}"
+  },
+  "dashboard": {
+    "title": "我的营销",
+    "subtitle": "汇总你在平台上实际做过的事情，并附上其他同类商家的参考数据。",
+    "statCampaigns": "已创建的营销方案",
+    "statSegments": "已完成的客户分析",
+    "statChannels": "已使用的渠道",
+    "channelCoverageTitle": "渠道覆盖情况",
+    "channelCoverageDesc": "平台可以生成内容的8个渠道，以及你已经用过哪些。",
+    "channelUsedBadge": "已使用",
+    "channelNotUsedBadge": "尚未使用",
+    "channelTryCta": "生成内容 →",
+    "benchmarkChannelsLine": "同类商家平均使用 {avg} 个渠道生成内容，你已使用 {count} 个。",
+    "benchmarkGoalLine": "平台上所有营销方案中，最常见的目标是「{goal}」。",
+    "recentActivityTitle": "最近动态",
+    "recentActivityEmpty": "暂时还没有记录。",
+    "viewFullHistory": "查看完整历史 →",
+    "recentCampaignLabel": "营销方案",
+    "recentSegmentLabel": "客户分析",
+    "emptyGuestTitle": "在这里查看你的营销活动概览",
+    "emptyGuestDesc": "登录后即可查看你创建过的营销方案与客户分析汇总、已经覆盖的渠道，以及与平台上其他商家的对比情况。",
+    "signInCta": "登录"
+  },
+  "apiDocs": {
+    "title": "开发者接口",
+    "subtitle": "我们正在开放平台的部分能力，让其他面向小微企业的工具也能基于它构建。免费使用，有速率限制，无需账号。",
+    "availableNowTitle": "现已开放",
+    "endpointName": "行业客群基准数据",
+    "endpointDesc": "返回针对某个行业类型（可选地区）的模型生成客群估算。使用的生成逻辑与应用内“行业基准”模式完全相同。",
+    "methodLabel": "方法",
+    "urlLabel": "地址",
+    "paramsTitle": "查询参数",
+    "paramName": "参数",
+    "paramRequired": "是否必填",
+    "paramDescription": "说明",
+    "params": [
+      {
+        "name": "industry",
+        "required": "是",
+        "description": "取值范围：cafe、retail、salon、restaurant、home_services、fitness、consulting、ecommerce、trades、healthcare、creative、other。"
+      },
+      {
+        "name": "location",
+        "required": "否",
+        "description": "自由文本形式的城市、地区或市场，用于让客群分析更贴合当地情况（例如“上海”）。"
+      }
+    ],
+    "curlTitle": "请求示例",
+    "responseTitle": "响应示例",
+    "rateLimitNote": "速率限制为每个客户端每小时 10 次请求，超出后返回 HTTP 429。",
+    "plannedTitle": "规划中",
+    "plannedIntro": "以下能力尚未开放，属于本接口的后续规划，暂无具体时间表。",
+    "plannedEndpoints": [
+      {
+        "name": "基于上传数据的客群分析",
+        "description": "规划中。上传你自己的客户数据（如 CSV），获得与应用内“客群分析”工具类似的分析结果。"
+      },
+      {
+        "name": "营销方案生成",
+        "description": "规划中。通过一次接口调用，生成与应用内“生成方案”工具相同的多渠道营销方案。"
+      },
+      {
+        "name": "内容格式化",
+        "description": "规划中。将一段内容改写为适配特定渠道规范与限制的格式。"
+      }
+    ],
+    "termsTitle": "使用条款",
+    "termsBody": [
+      "面向服务小微企业的工具和产品免费开放使用。",
+      "欢迎标注来源为 AI4SMB Insights，但不作强制要求。",
+      "请求受速率限制约束；限制额度可能随时调整，恕不另行通知。",
+      "本服务为免费尽力而为性质，不保证可用性或正常运行时间。"
+    ],
+    "contactTitle": "需要更高的额度，或者正在开发相关产品？",
+    "contactBody": "欢迎联系我们，介绍一下你正在构建的项目。",
+    "contactEmailLabel": "info@ai4smbhub.com"
   }
 }

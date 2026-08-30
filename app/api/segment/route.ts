@@ -1,4 +1,4 @@
-import { buildSegmentPrompt, getSegmentSystemPrompt, type CsvSummary } from "@/lib/segment-prompts";
+import { buildSegmentPrompt, getSegmentSystemPrompt, groundCsvResult, type CsvSummary } from "@/lib/segment-prompts";
 import { getOrCreateSession, saveSegment, extractSessionMeta } from "@/lib/supabase";
 import { getUser } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -115,7 +115,10 @@ export async function POST(req: Request) {
       getDefaultProvider()
     );
     const text = response.text || "{}";
-    const result = JSON.parse(text);
+    const parsedResult = JSON.parse(text);
+    const result = mode === "csv"
+      ? groundCsvResult(parsedResult, body.summary?.computedFacts, locale)
+      : parsedResult;
 
     console.log("SEGMENT:", {
       anonId: anonId || "unknown",

@@ -13,9 +13,13 @@
     "history": "History",
     "segments": "Segments",
     "campaigns": "Campaigns",
+    "dashboardNav": "My marketing",
     "profile": "Profile",
     "errorGeneric": "Something went wrong.",
-    "networkError": "Network error. Please try again."
+    "networkError": "Network error. Please try again.",
+    "poweredByPrefix": "Powered by",
+    "poweredByModel": "gpt-oss-120b",
+    "poweredBySuffix": "— an open-weight model"
   },
   "landing": {
     "badge": "Built for small business owners",
@@ -59,6 +63,10 @@
     "bottomCtaTitle": "Start for free today.",
     "bottomCtaDesc": "Thousands of small business owners are finding their best customers and writing better marketing with AI4SMB. It's free, it's fast, and it takes less than two minutes.",
     "footerDesc": "Free AI marketing tools for small businesses.",
+    "footerArchitectureLink": "Architecture",
+    "footerPrivacyLink": "Privacy",
+    "footerImpactLink": "Impact",
+    "footerApiDocsLink": "API",
     "testimonialLabel": "Testimonials",
     "testimonialTitle": "What business owners are saying"
   },
@@ -348,7 +356,22 @@
     "totalCampaigns": "Total campaigns",
     "totalSegments": "Total segments",
     "notSignedIn": "You're not signed in yet.",
-    "signInPrompt": "Sign in to save your work across devices and track your usage."
+    "signInPrompt": "Sign in to save your work across devices and track your usage.",
+    "dataSectionTitle": "Your data",
+    "dataSectionDesc": "Export covers your profile, linked sessions, campaigns and segments. Deletion removes these records but does not delete the authentication account or promise erasure of every log or backup.",
+    "dataSignInRequired": "Sign in to export or delete your data.",
+    "exportButton": "Export my data",
+    "exporting": "Preparing your export…",
+    "exportError": "Could not export your data. Please try again.",
+    "deleteButton": "Delete my account data",
+    "deleteWarning": "This permanently deletes your campaigns, segments, sessions and profile information. This cannot be undone. Your authentication account is retained; this is not a complete account closure.",
+    "deleteConfirmLabel": "Type DELETE to confirm",
+    "deleteConfirmPlaceholder": "DELETE",
+    "deleteConfirmButton": "Permanently delete my data",
+    "deleteCancelButton": "Cancel",
+    "deleting": "Deleting…",
+    "deleteError": "Could not delete your data. Please try again.",
+    "deleteSuccess": "Your data has been deleted. Signing you out…"
   },
   "review": {
     "promptTitle": "How was your experience?",
@@ -564,6 +587,257 @@
     "ltvMed": "Average spend",
     "ltvLow": "Budget-conscious",
     "lessDetail": "▾ Less detail",
-    "moreDetail": "▸ Channels, messaging & recommendations"
+    "moreDetail": "▸ Channels, messaging & recommendations",
+    "benchmarkProvenance": "These segments are model-generated estimates for this business type and location. They are not computed from other businesses' data."
+  },
+  "architecture": {
+    "title": "How AI4SMB Insights is built",
+    "subtitle": "The system that powers the platform, in plain terms.",
+    "tableLayer": "Layer",
+    "tableImplementation": "Implementation",
+    "tableWhatItDoes": "What it does",
+    "rows": [
+      {
+        "layer": "Presentation",
+        "implementation": "Next.js 16 (App Router) with React 19 and Tailwind CSS, server-rendered, deployed on a global edge network; internationalized English / Simplified Chinese.",
+        "what": "Available through an ordinary browser; no installation or account required."
+      },
+      {
+        "layer": "Application services",
+        "implementation": "A set of stateless API services covering generation, segmentation, the conversational strategist, post formatting, image generation and review retrieval.",
+        "what": "Separate API routes organize these capabilities; shared providers can affect multiple features."
+      },
+      {
+        "layer": "Inference",
+        "implementation": "Provider-abstraction layer routing to an open-weight model, gpt-oss-120b, served on LPU inference hardware, with Google Gemini 2.5 Flash / Pro as an alternate route, selected per request.",
+        "what": "No hard dependency on any single model vendor; models are interchangeable behind one interface."
+      },
+      {
+        "layer": "Cost governance",
+        "implementation": "Gemini has per-process minute/day request limits and can fall back to Groq on quota errors. Generation and segmentation have separate in-memory session rate limits.",
+        "what": "Helps control requests; these are not a global spending cap or a guarantee of fail-over on every error."
+      },
+      {
+        "layer": "Data",
+        "implementation": "PostgreSQL (Supabase) with row-level security enabled on every table; migration-controlled schema; anonymous session model with optional authenticated accounts via magic link.",
+        "what": "Tenant isolation and least-privilege access; use without an account is the default."
+      },
+      {
+        "layer": "Client-side data handling",
+        "implementation": "CSV and POS input is parsed in the browser. Recognized identifying columns are removed; column statistics, computed cohort counts and sanitized sample rows are sent for analysis.",
+        "what": "The original file is not uploaded. Heuristic redaction may miss identifiers in unfamiliar columns or free text; review inputs before analysis."
+      }
+    ],
+    "roadmapTitle": "Where this is going",
+    "roadmap": [
+      "Self-hosted inference on vLLM, so model serving runs on infrastructure we operate rather than third-party APIs.",
+      "Domain-specialized open-weight models, fine-tuned with parameter-efficient adapters on consented, de-identified data.",
+      "Automated detection and redaction of residual identifiers in free-text input.",
+      "Differential-privacy techniques for cross-business industry benchmarks.",
+      "Independent security assurance, including a SOC 2 examination."
+    ],
+    "footerLinks": "Read more about how <privacy>customer data is handled</privacy> and the <model>models behind the platform</model>."
+  },
+  "privacyNotice": {
+    "heading": "Processed in your browser",
+    "bodyColumns": "These columns contained personal information and were removed before anything was sent: {columns}.",
+    "bodyCounts": "{emails} email addresses and {phones} phone numbers were masked.",
+    "bodyNone": "No personal-information columns were detected in this file.",
+    "bodyScope": "Only column statistics and de-identified samples are sent for analysis. Your raw customer list never leaves this device.",
+    "bodyNoTraining": "Your data is not used to train any model.",
+    "linkText": "How we handle your data"
+  },
+  "privacyPage": {
+    "title": "How we handle your data",
+    "subtitle": "We minimize the data sent for analysis and describe both the safeguards and their limits.",
+    "flowTitle": "What happens when you upload a file",
+    "flowSteps": [
+      {
+        "title": "Your browser",
+        "desc": "The file is read and parsed on your own device."
+      },
+      {
+        "title": "Identifying fields removed",
+        "desc": "Recognized name, email and phone columns are removed; detectable email and phone patterns in text are masked."
+      },
+      {
+        "title": "A minimized summary is sent",
+        "desc": "Column distributions, sampled non-identifying values, and derived segment features."
+      },
+      {
+        "title": "Analysis returns",
+        "desc": "Segments and suggestions return. The original file stays on your device, but sanitization is heuristic and may miss residual identifiers."
+      }
+    ],
+    "controlsTitle": "Controls in place today",
+    "controls": [
+      {
+        "lead": "Client-side processing and PII minimization.",
+        "body": "CSV and POS input is parsed in the browser. Recognized identifying columns are removed; column statistics, computed cohort counts and sanitized sample rows are sent for analysis. The original file is not uploaded. Heuristic redaction may miss identifiers in unfamiliar columns or free text; review inputs before analysis."
+      },
+      {
+        "lead": "Anonymous-first identity.",
+        "body": "The platform is fully usable with no account. An anonymous session identifier, not a person, is the default unit of record; signing in is optional and exists only so you can retrieve your own saved work."
+      },
+      {
+        "lead": "Tenant isolation at the database layer.",
+        "body": "Schema scripts enable row-level security. Server-side service-role requests bypass RLS, so account routes also scope their queries to the authenticated user."
+      },
+      {
+        "lead": "Least-privilege service credentials.",
+        "body": "Privileged keys exist only server-side and are never exposed to the browser; the client holds only a public, restricted key."
+      },
+      {
+        "lead": "Rate limiting and abuse control.",
+        "body": "Generation and segmentation apply in-memory limits when a session identifier is supplied. The public benchmark API has a separate limit. These controls are not a comprehensive abuse-prevention guarantee."
+      },
+      {
+        "lead": "Transparent disclosure.",
+        "body": "The interface states in plain language, at the point of upload, exactly what is processed locally, what is transmitted, and what is retained."
+      },
+      {
+        "lead": "No training on your data.",
+        "body": "We do not run a training or fine-tuning pipeline on uploads. Analysis is sent to configured third-party inference services; their handling is governed by applicable service terms and account settings."
+      },
+      {
+        "lead": "Data export and deletion.",
+        "body": "Export covers your profile, linked sessions, campaigns and segments. Deletion removes these records but does not delete the authentication account or promise erasure of every log or backup."
+      }
+    ],
+    "footerLinks": "See how these controls are enforced, and where our security and privacy work is going next, in the <arch>system architecture</arch>."
+  },
+  "modelCard": {
+    "title": "Model card",
+    "subtitle": "Which models power this platform, and why they are open.",
+    "modelsTitle": "Models in use",
+    "tableModel": "Model",
+    "tableRole": "Role",
+    "tableWeights": "Weights",
+    "models": [
+      {
+        "name": "gpt-oss-120b (OpenAI)",
+        "role": "Primary generation: segmentation, campaigns, conversational strategist, post formatting",
+        "weights": "Open weights (Apache 2.0)"
+      },
+      {
+        "name": "Gemini 2.5 Flash / Pro",
+        "role": "Alternate route, selected per request for capacity and fail-over",
+        "weights": "Proprietary (Google)"
+      }
+    ],
+    "whyOpenTitle": "Why open-weight models",
+    "whyOpen": [
+      "Open-weight models provide an additional option for controlling inference costs and supporting a free core service.",
+      "A provider abstraction reduces dependence on a single hosted model, although providers can still change prices and availability.",
+      "The model, its weights and its behavior can be audited, which the platform's explainability commitments depend on."
+    ],
+    "selectionTitle": "How models are selected",
+    "selectionP1": "A provider-abstraction layer means a model can be substituted by configuration rather than a rewrite.",
+    "selectionP2": "The codebase includes a model-comparison harness. A complete marketing-quality evaluation across all candidate model families has not yet been established.",
+    "explainabilityTitle": "Explainability",
+    "explainabilityBody": "Prompts request reasons for recommendations; this alone does not validate their truth. For recognized CSV date/order-value fields, code computes and preserves cohort counts and rules independently of generated marketing suggestions. Other inputs and all creative suggestions still require review.",
+    "limitationsTitle": "Known limitations",
+    "limitations": [
+      "Outputs are generated text and should be reviewed before publication.",
+      "Benchmark segments for a business type and location are estimates, not measurements of that specific business.",
+      "The platform does not have access to a business's live ad performance unless the owner provides it.",
+      "Generated figures and statistics in marketing copy should be verified by the owner."
+    ],
+    "trainingDataTitle": "Training data",
+    "trainingDataBody": "We do not run a training or fine-tuning pipeline on uploads. Analysis is sent to configured third-party inference services; their handling is governed by applicable service terms and account settings."
+  },
+  "impact": {
+    "title": "Real impact, not projections",
+    "subtitle": "Live counts pulled directly from the AI4SMB Insights database — no estimates, no projections, except where clearly labelled.",
+    "statCampaigns": "Campaigns generated",
+    "statSegments": "Customer analyses run",
+    "statBusinessTypes": "Business types served",
+    "statLocations": "Locations served",
+    "statAverageRating": "Average rating",
+    "statNps": "Net Promoter Score",
+    "ratingOutOf": "/ 5",
+    "timeEstimateTitle": "Estimated time saved",
+    "hoursValue": "{count} hours saved",
+    "timeEstimateDisclaimer": "Estimate. Assumes 3 hours of work avoided per campaign generated and 2 hours per customer analysis. Not a measurement.",
+    "howProducedTitle": "How these numbers are produced",
+    "howProducedBody": "Counts come directly from the platform database — every campaign, customer analysis, business type and location represents a real row in a real table. Average rating and NPS come from reviews submitted by people who used the platform. No figure on this page is modelled or projected, except the time-saved estimate above, which is clearly labelled as an estimate.",
+    "emptyNote": "Not enough platform data yet to show numbers here. Check back soon.",
+    "updatedNote": "Updated {date}"
+  },
+  "dashboard": {
+    "title": "My marketing",
+    "subtitle": "A summary of what you've done on this platform, with a little context from other businesses like yours.",
+    "statCampaigns": "Campaigns created",
+    "statSegments": "Customer analyses run",
+    "statChannels": "Channels used",
+    "channelCoverageTitle": "Channel coverage",
+    "channelCoverageDesc": "The 8 channels this platform can generate content for, and which ones you've already used.",
+    "channelUsedBadge": "Used",
+    "channelNotUsedBadge": "Not yet used",
+    "channelTryCta": "Generate content →",
+    "benchmarkChannelsLine": "Businesses like yours generate content for an average of {avg} channels. You've used {count}.",
+    "benchmarkGoalLine": "The most common goal among campaigns created on this platform is “{goal}.”",
+    "recentActivityTitle": "Recent activity",
+    "recentActivityEmpty": "Nothing here yet.",
+    "viewFullHistory": "View full history →",
+    "recentCampaignLabel": "Campaign",
+    "recentSegmentLabel": "Customer analysis",
+    "emptyGuestTitle": "See your marketing activity in one place",
+    "emptyGuestDesc": "Sign in to see a summary of the campaigns and customer analyses you've created, which channels you've covered, and how that compares to other businesses on the platform.",
+    "signInCta": "Sign in"
+  },
+  "apiDocs": {
+    "title": "Developer API",
+    "subtitle": "We're opening up parts of the platform so other tools serving small businesses can build on them. Free, rate-limited, no account required.",
+    "availableNowTitle": "Available now",
+    "endpointName": "Industry benchmark segments",
+    "endpointDesc": "Returns model-generated customer segment estimates for a business type, optionally narrowed to a location. This is the same generation path used by Benchmark mode in the app.",
+    "methodLabel": "Method",
+    "urlLabel": "URL",
+    "paramsTitle": "Query parameters",
+    "paramName": "Parameter",
+    "paramRequired": "Required",
+    "paramDescription": "Description",
+    "params": [
+      {
+        "name": "industry",
+        "required": "Yes",
+        "description": "One of: cafe, retail, salon, restaurant, home_services, fitness, consulting, ecommerce, trades, healthcare, creative, other."
+      },
+      {
+        "name": "location",
+        "required": "No",
+        "description": "Free-text city, region, or market to tailor the segments to (e.g. \"Austin, TX\")."
+      }
+    ],
+    "curlTitle": "Example request",
+    "responseTitle": "Example response",
+    "rateLimitNote": "Rate limited to 10 requests per hour per client. Exceeding it returns HTTP 429.",
+    "plannedTitle": "Planned",
+    "plannedIntro": "These are not available yet — they're on the roadmap for this API, with no dates set.",
+    "plannedEndpoints": [
+      {
+        "name": "Segmentation from uploaded data",
+        "description": "Planned. Submit your own customer data (CSV or similar) and receive the same kind of segment analysis the in-app Segment tool produces."
+      },
+      {
+        "name": "Campaign generation",
+        "description": "Planned. Generate a full multi-channel campaign brief the way the in-app Generate tool does, from a single API call."
+      },
+      {
+        "name": "Post formatting",
+        "description": "Planned. Reformat a piece of content for a specific channel's conventions and constraints."
+      }
+    ],
+    "termsTitle": "Terms of use",
+    "termsBody": [
+      "Free to use for tools and services that serve small businesses.",
+      "Attribution to AI4SMB Insights is requested but not required.",
+      "Requests are rate-limited; limits may change without notice.",
+      "No guarantee of availability or uptime — this is a free, best-effort service."
+    ],
+    "contactTitle": "Need higher limits, or building something?",
+    "contactBody": "Reach out and tell us what you're building.",
+    "contactEmailLabel": "info@ai4smbhub.com"
   }
 }

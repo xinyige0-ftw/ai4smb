@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { createBrowserClient } from "@supabase/ssr";
 import AuthButton from "@/components/AuthButtonWrapper";
 import LanguageToggle from "@/components/LanguageToggle";
 
@@ -58,12 +59,22 @@ const TONES = [
 
 export default function ProfilePage() {
   const tc = useTranslations("common");
+  const t = useTranslations("profile");
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<Preferences>({});
   const [saving, setSaving] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const signedIn = !!profile;
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   const savePreferences = useCallback((next: Preferences) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -92,6 +103,56 @@ export default function ProfilePage() {
     },
     [savePreferences],
   );
+
+  async function handleExportData() {
+    setExporting(true);
+    setExportError(false);
+    try {
+      const res = await fetch("/api/account/export");
+      if (!res.ok) throw new Error("export_failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai4smb-my-data.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleDeleteData() {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+    setDeleteError(false);
+    try {
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE" }),
+      });
+      if (!res.ok) throw new Error("delete_failed");
+      setDeleteSuccess(true);
+      setShowDeleteConfirm(false);
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/";
+      }, 1800);
+    } catch {
+      setDeleteError(true);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     const anonId =
@@ -345,6 +406,90 @@ export default function ProfilePage() {
                 Saved preferences will pre-fill your campaigns and segment analyses.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Your data — export & delete */}
+        {!loading && (
+          <div className="mt-6 rounded-2xl border-2 border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <h2 className="mb-1 text-sm font-semibold text-zinc-500 uppercase tracking-wide dark:text-zinc-400">
+              {t("dataSectionTitle")}
+            </h2>
+            <p className="mb-4 text-xs text-zinc-400 dark:text-zinc-500">
+              {t("dataSectionDesc")}
+            </p>
+
+            {!signedIn && (
+              <p className="mb-3 text-xs text-zinc-400 dark:text-zinc-500">
+                {t("dataSignInRequired")}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={handleExportData}
+                disabled={!signedIn || exporting}
+                className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-all hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                {exporting ? t("exporting") : t("exportButton")}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm((v) => !v)}
+                disabled={!signedIn}
+                className="flex-1 rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+              >
+                {t("deleteButton")}
+              </button>
+            </div>
+
+            {exportError && (
+              <p className="mt-2 text-xs text-red-500">{t("exportError")}</p>
+            )}
+
+            {showDeleteConfirm && signedIn && !deleteSuccess && (
+              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+                <p className="mb-3 text-xs leading-relaxed text-red-700 dark:text-red-300">
+                  {t("deleteWarning")}
+                </p>
+                <label htmlFor="deleteConfirm" className="mb-1.5 block text-xs font-medium text-red-700 dark:text-red-300">
+                  {t("deleteConfirmLabel")}
+                </label>
+                <input
+                  id="deleteConfirm"
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={t("deleteConfirmPlaceholder")}
+                  className="mb-3 w-full rounded-lg border border-red-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none dark:border-red-800 dark:bg-zinc-900 dark:text-zinc-50"
+                />
+                {deleteError && (
+                  <p className="mb-3 text-xs text-red-600 dark:text-red-400">{t("deleteError")}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteConfirmText("");
+                      setDeleteError(false);
+                    }}
+                    className="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-medium text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
+                  >
+                    {t("deleteCancelButton")}
+                  </button>
+                  <button
+                    onClick={handleDeleteData}
+                    disabled={deleteConfirmText !== "DELETE" || deleting}
+                    className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {deleting ? t("deleting") : t("deleteConfirmButton")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {deleteSuccess && (
+              <p className="mt-4 text-xs font-medium text-green-600 dark:text-green-400">{t("deleteSuccess")}</p>
+            )}
           </div>
         )}
       </div>

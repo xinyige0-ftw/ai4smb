@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Papa from "papaparse";
-import { summarizeCsv, stripPiiFromSummary } from "@/lib/segment-prompts";
+import { summarizeCsv, stripPiiFromSummary, analyzeRedaction, type RedactionReport } from "@/lib/segment-prompts";
 import SegmentResults from "./SegmentResults";
+import PrivacyRedactionNotice from "./PrivacyRedactionNotice";
 import VoiceInput from "./VoiceInput";
 
 interface SegmentData {
@@ -29,6 +30,7 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
   const [previewRows, setPreviewRows] = useState<string[][]>([]);
   const [rowCount, setRowCount] = useState(0);
   const [step, setStep] = useState<"paste" | "preview">("paste");
+  const [redactionReport, setRedactionReport] = useState<RedactionReport | null>(null);
 
   function handleParse() {
     setError("");
@@ -47,6 +49,7 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
     setPreviewHeaders(headers);
     setPreviewRows(rows);
     setRowCount(rows.length);
+    setRedactionReport(analyzeRedaction(headers, rows));
     setStep("preview");
   }
 
@@ -80,15 +83,22 @@ export default function POSPaste({ onBack }: { onBack: () => void }) {
 
   if (result) {
     return (
-      <SegmentResults
-        result={result}
-        resultId={resultId}
-        meta={{ rowCount, columnCount: previewHeaders.length }}
-        metaLabel={t("metaLabel", { count: rowCount })}
-        onStartOver={onBack}
-        onReanalyze={handleAnalyze}
-        loading={loading}
-      />
+      <>
+        {redactionReport && (
+          <div className="mx-auto w-full max-w-2xl px-3 pt-6 sm:px-4 sm:pt-8">
+            <PrivacyRedactionNotice report={redactionReport} />
+          </div>
+        )}
+        <SegmentResults
+          result={result}
+          resultId={resultId}
+          meta={{ rowCount, columnCount: previewHeaders.length }}
+          metaLabel={t("metaLabel", { count: rowCount })}
+          onStartOver={onBack}
+          onReanalyze={handleAnalyze}
+          loading={loading}
+        />
+      </>
     );
   }
 

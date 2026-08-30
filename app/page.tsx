@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import AuthButtonWrapper from "@/components/AuthButtonWrapper";
 import LanguageToggle from "@/components/LanguageToggle";
+import OpenModelBadge from "@/components/OpenModelBadge";
 
 export default function Home() {
   const t = useTranslations("landing");
@@ -214,13 +215,42 @@ export default function Home() {
             <p className="text-xs text-zinc-400 dark:text-zinc-600">
               {t("footerDesc")}
             </p>
-            <a
-              href="mailto:info@ai4smbhub.com"
-              className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              info@ai4smbhub.com
-            </a>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
+              <a
+                href="mailto:info@ai4smbhub.com"
+                className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                info@ai4smbhub.com
+              </a>
+              <a
+                href="/architecture"
+                className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {t("footerArchitectureLink")}
+              </a>
+              <a
+                href="/privacy"
+                className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {t("footerPrivacyLink")}
+              </a>
+              <a
+                href="/impact"
+                className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {t("footerImpactLink")}
+              </a>
+              <a
+                href="/api-docs"
+                className="text-xs text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                {t("footerApiDocsLink")}
+              </a>
+            </div>
           </div>
+        </div>
+        <div className="mx-auto mt-5 max-w-4xl">
+          <OpenModelBadge />
         </div>
       </footer>
     </main>

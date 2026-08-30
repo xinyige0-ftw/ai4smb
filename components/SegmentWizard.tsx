@@ -4,8 +4,9 @@ import { useState, useCallback, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Papa from "papaparse";
 import SegmentResults from "./SegmentResults";
+import PrivacyRedactionNotice from "./PrivacyRedactionNotice";
 import { SAMPLE_HEADERS, SAMPLE_ROWS } from "@/lib/sample-data";
-import { summarizeCsv, stripPiiFromSummary } from "@/lib/segment-prompts";
+import { summarizeCsv, stripPiiFromSummary, analyzeRedaction, type RedactionReport } from "@/lib/segment-prompts";
 
 interface SegmentData {
   summary: string;
@@ -39,6 +40,7 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
   const [result, setResult] = useState<SegmentData | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
   const [meta, setMeta] = useState({ rowCount: 0, columnCount: 0 });
+  const [redactionReport, setRedactionReport] = useState<RedactionReport | null>(null);
 
   const parseCsv = useCallback((file: File) => {
     setError("");
@@ -62,6 +64,7 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
 
         setHeaders(csvHeaders);
         setRows(csvRows);
+        setRedactionReport(analyzeRedaction(csvHeaders, csvRows));
         setStep("preview");
       },
       error() {
@@ -89,6 +92,7 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
   function loadSampleData() {
     setHeaders(SAMPLE_HEADERS);
     setRows(SAMPLE_ROWS);
+    setRedactionReport(analyzeRedaction(SAMPLE_HEADERS, SAMPLE_ROWS));
     setFileName("sample-coffee-shop.csv");
     setStep("preview");
   }
@@ -138,20 +142,28 @@ export default function SegmentWizard({ onBack }: { onBack?: () => void } = {}) 
     setBusinessContext("");
     setResult(null);
     setResultId(null);
+    setRedactionReport(null);
     setError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   if (step === "results" && result) {
     return (
-      <SegmentResults
-        result={result}
-        resultId={resultId}
-        meta={meta}
-        onStartOver={onBack || handleStartOver}
-        onReanalyze={handleAnalyze}
-        loading={loading}
-      />
+      <>
+        {redactionReport && (
+          <div className="mx-auto w-full max-w-2xl px-3 pt-6 sm:px-4 sm:pt-8">
+            <PrivacyRedactionNotice report={redactionReport} />
+          </div>
+        )}
+        <SegmentResults
+          result={result}
+          resultId={resultId}
+          meta={meta}
+          onStartOver={onBack || handleStartOver}
+          onReanalyze={handleAnalyze}
+          loading={loading}
+        />
+      </>
     );
   }
 

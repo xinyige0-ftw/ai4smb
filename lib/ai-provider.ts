@@ -20,7 +20,7 @@ export interface ChatMessage {
   content: string;
 }
 
-const DEFAULT_GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const DEFAULT_GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const DEFAULT_GEMINI_FLASH_MODEL = process.env.GEMINI_FLASH_MODEL || "gemini-2.5-flash";
 const DEFAULT_GEMINI_PRO_MODEL = process.env.GEMINI_PRO_MODEL || "gemini-2.5-pro";
 const DEFAULT_PROVIDER = (process.env.LLM_PROVIDER || "groq") as Provider;

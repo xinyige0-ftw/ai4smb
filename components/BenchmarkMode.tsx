@@ -87,6 +87,7 @@ export default function BenchmarkMode({ onBack }: { onBack: () => void }) {
         onStartOver={onBack}
         onReanalyze={handleAnalyze}
         loading={loading}
+        benchmarkMode
       />
     );
   }

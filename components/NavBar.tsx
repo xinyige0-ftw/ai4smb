@@ -17,6 +17,7 @@ export default function NavBar() {
         <div className="flex items-center gap-3">
           <Link href="/segment" className="hidden text-xs text-zinc-400 hover:text-zinc-700 sm:inline dark:hover:text-zinc-200">{t("segments")}</Link>
           <Link href="/generate" className="hidden text-xs text-zinc-400 hover:text-zinc-700 sm:inline dark:hover:text-zinc-200">{t("campaigns")}</Link>
+          <Link href="/dashboard" className="hidden text-xs text-zinc-400 hover:text-zinc-700 sm:inline dark:hover:text-zinc-200">{t("dashboardNav")}</Link>
           <Link href="/history" className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">{t("history")}</Link>
           <LanguageToggle />
           <AuthButton />

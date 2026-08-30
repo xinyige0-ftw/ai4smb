@@ -107,6 +107,7 @@ export default function HistoryView() {
         onStartOver={() => setActiveSegment(null)}
         onReanalyze={() => {}}
         loading={false}
+        benchmarkMode={activeSegment.mode === "benchmark"}
       />
     );
   }

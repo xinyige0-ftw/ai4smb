@@ -53,6 +53,7 @@ interface SegmentResultsProps {
   onReanalyze: () => void;
   loading: boolean;
   toolUsed?: string;
+  benchmarkMode?: boolean;
 }
 
 const COLOR_MAP: Record<string, { bg: string; border: string; text: string; bar: string }> = {
@@ -306,6 +307,7 @@ export default function SegmentResults({
   onReanalyze,
   loading,
   toolUsed,
+  benchmarkMode,
 }: SegmentResultsProps) {
   const t = useTranslations("segmentResults");
   const [copied, setCopied] = useState(false);
@@ -451,6 +453,13 @@ export default function SegmentResults({
       {result.dataQuality && (
         <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
           {result.dataQuality}
+        </p>
+      )}
+
+      {/* Benchmark provenance disclosure */}
+      {benchmarkMode && (
+        <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
+          {t("benchmarkProvenance")}
         </p>
       )}
 

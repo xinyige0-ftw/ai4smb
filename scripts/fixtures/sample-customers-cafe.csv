@@ -1,0 +1,89 @@
+customer_name,email,phone,neighborhood,zip,first_visit,last_visit,total_orders,total_spend,avg_order_value,favorite_item,loyalty_member,signup_source,notes
+James Johnson,james.johnson16@icloud.com,(206) 555-0962,West Seattle,98116,2025-09-12,2026-07-26,1,9.35,9.35,mocha,no,TikTok,always orders for two
+Michael Ibrahim,michael.ibrahim19@icloud.com,(206) 555-0894,West Seattle,98107,2026-03-10,2026-07-18,26,213.72,8.22,mocha,yes,Email newsletter,
+Ivan Johnson,ivan.johnson94@gmail.com,(206) 555-0502,Ballard,98103,2026-07-26,2026-08-04,2,9.52,4.76,espresso,no,Email newsletter,always orders for two
+Priya Novak,priya.novak43@icloud.com,(206) 555-0465,Ballard,98116,2025-11-21,2026-07-28,22,139.92,6.36,matcha latte,yes,Google Search,
+Justin Silva,justin.silva31@outlook.com,(206) 555-0353,Wallingford,98109,2026-07-09,2026-07-26,2,16.38,8.19,espresso,yes,Walk-by,prefers oat milk
+Sarah Bennett,sarah.bennett91@yahoo.com,(206) 555-0322,Greenwood,98116,2024-10-24,2026-02-20,4,26.8,6.7,americano,no,Yelp,call before 9am at 206-555-9021
+Hannah Jensen,hannah.jensen93@gmail.com,(206) 555-0996,Capitol Hill,98118,2024-07-03,2025-09-19,4,31.36,7.84,americano,no,Google Search,prefers oat milk
+Christina Wallace,christina.wallace75@outlook.com,(206) 555-0673,U-District,98107,2024-12-02,2026-07-31,63,562.59,8.93,mocha,yes,Yelp,
+Diego Silva,diego.silva27@icloud.com,(206) 555-0399,Queen Anne,98105,2026-06-16,2026-08-07,3,19.44,6.48,cappuccino,no,Google Search,
+Elena Jensen,elena.jensen41@gmail.com,(206) 555-0224,Queen Anne,98118,2025-08-11,2026-08-02,18,151.92,8.44,cold brew,yes,Walk-by,reach at elena.jensen@gmail.com for catering
+Nathan Kowalski,nathan.kowalski77@outlook.com,(206) 555-0747,U-District,98105,2024-12-02,2026-03-19,14,84.14,6.01,matcha latte,no,Google Search,
+Jonas Johnson,jonas.johnson63@icloud.com,(206) 555-0585,Greenwood,98116,2024-10-06,2026-08-04,126,962.64,7.64,matcha latte,yes,Instagram,
+Laura Martinez,laura.martinez21@icloud.com,(206) 555-0665,Ballard,98107,2026-07-07,2026-08-05,2,9.64,4.82,matcha latte,no,Google Search,always orders for two
+Nicole Rossi,nicole.rossi6@icloud.com,(206) 555-0520,Capitol Hill,98116,2025-07-20,2026-07-08,2,16.38,8.19,cold brew,no,Instagram,allergic to hazelnut
+Nathan Ferreira,nathan.ferreira58@outlook.com,(206) 555-0945,Ballard,98109,2024-06-24,2025-09-23,11,55.0,5.0,drip coffee,yes,Email newsletter,reach at nathan.ferreira@gmail.com for catering
+Diego Jensen,diego.jensen12@gmail.com,(206) 555-0465,Greenwood,98109,2026-07-13,2026-07-25,1,7.31,7.31,espresso,no,Word of mouth,allergic to hazelnut
+Carlos Patel,carlos.patel95@outlook.com,(206) 555-0886,Belltown,98118,2025-03-04,2026-08-09,123,864.69,7.03,americano,yes,Word of mouth,
+Ryan Ellis,ryan.ellis15@yahoo.com,(206) 555-0717,Queen Anne,98116,2025-08-07,2025-10-09,12,71.04,5.92,americano,no,Google Search,call before 9am at 206-555-9335
+Tyler Lam,tyler.lam45@gmail.com,(206) 555-0788,Wallingford,98102,2025-06-29,2026-07-23,36,223.92,6.22,oat latte,yes,Yelp,call before 9am at 206-555-3914
+Sarah Bennett,sarah.bennett49@yahoo.com,(206) 555-0244,Ballard,98121,2024-10-06,2025-11-08,14,92.12,6.58,oat latte,no,Walk-by,always orders for two
+Michael Ellis,michael.ellis35@yahoo.com,(206) 555-0636,Capitol Hill,98116,2024-09-27,2025-09-12,17,109.48,6.44,matcha latte,no,Walk-by,allergic to hazelnut
+Megan Park,megan.park77@icloud.com,(206) 555-0771,U-District,98103,2025-01-24,2026-07-23,16,121.12,7.57,mocha,yes,Instagram,brings own cup
+Priya Novak,priya.novak38@gmail.com,(206) 555-0439,Ballard,98109,2025-08-28,2026-08-06,26,183.04,7.04,cold brew,yes,Walk-by,brings own cup
+Christina Bennett,christina.bennett37@yahoo.com,(206) 555-0583,Wallingford,98105,2025-07-18,2026-02-05,4,32.76,8.19,chai,no,Walk-by,always orders for two
+Omar Patel,omar.patel13@yahoo.com,(206) 555-0100,West Seattle,98102,2025-07-01,2026-08-09,59,473.77,8.03,cold brew,yes,Yelp,asks about the seasonal menu
+Eric Lam,eric.lam1@icloud.com,(206) 555-0575,Queen Anne,98116,2026-06-26,2026-08-01,3,16.98,5.66,espresso,yes,Walk-by,
+Omar Wallace,omar.wallace12@yahoo.com,(206) 555-0278,Queen Anne,98121,2025-08-28,2025-12-08,6,41.52,6.92,matcha latte,no,Google Search,asks about the seasonal menu
+Ruby Rossi,ruby.rossi85@icloud.com,(206) 555-0162,Columbia City,98103,2026-01-04,2026-07-11,20,148.2,7.41,mocha,yes,Yelp,reach at ruby.rossi@gmail.com for catering
+Ashley Wallace,ashley.wallace80@outlook.com,(206) 555-0236,Columbia City,98107,2026-02-11,2026-07-10,2,18.88,9.44,matcha latte,no,Yelp,reach at ashley.wallace@gmail.com for catering
+Sarah Nguyen,sarah.nguyen22@outlook.com,(206) 555-0737,U-District,98105,2025-08-24,2026-07-13,3,15.63,5.21,drip coffee,no,Instagram,asks about the seasonal menu
+Nicole Okafor,nicole.okafor58@yahoo.com,(206) 555-0569,Belltown,98109,2025-05-18,2026-04-03,5,41.4,8.28,cappuccino,yes,Instagram,asks about the seasonal menu
+Tyler Brooks,tyler.brooks65@icloud.com,(206) 555-0498,Fremont,98102,2026-07-10,2026-07-23,2,12.08,6.04,oat latte,no,Word of mouth,reach at tyler.brooks@gmail.com for catering
+James Jensen,james.jensen33@outlook.com,(206) 555-0776,Greenwood,98109,2025-04-17,2026-07-15,36,217.44,6.04,cold brew,yes,Word of mouth,
+Jonas Gupta,jonas.gupta93@icloud.com,(206) 555-0544,Greenwood,98118,2025-12-11,2026-07-22,34,276.42,8.13,cold brew,no,Google Search,
+Lucas Brooks,lucas.brooks3@outlook.com,(206) 555-0870,Ballard,98102,2024-10-02,2025-07-27,10,75.7,7.57,oat latte,yes,Walk-by,brings own cup
+Mei Delgado,mei.delgado40@yahoo.com,(206) 555-0414,Belltown,98118,2026-06-25,2026-07-20,2,13.1,6.55,oat latte,no,TikTok,
+Elena Lam,elena.lam34@icloud.com,(206) 555-0648,U-District,98103,2025-12-03,2026-07-17,7,779.52,111.36,espresso,yes,Instagram,always orders for two
+Nora Ellis,nora.ellis88@outlook.com,(206) 555-0603,Ballard,98121,2026-02-03,2026-07-06,8,983.84,122.98,seasonal special,no,Google Search,
+Rachel Park,rachel.park54@yahoo.com,(206) 555-0388,West Seattle,98121,2025-01-17,2026-08-07,107,1095.68,10.24,drip coffee,yes,Yelp,
+Rachel Kim,rachel.kim34@outlook.com,(206) 555-0128,West Seattle,98121,2025-09-14,2026-07-29,111,967.92,8.72,americano,yes,Email newsletter,reach at rachel.kim@gmail.com for catering
+Amanda Fischer,amanda.fischer54@gmail.com,(206) 555-0291,West Seattle,98103,2025-07-22,2026-06-29,2,10.1,5.05,chai,yes,Instagram,reach at amanda.fischer@gmail.com for catering
+Justin Ibrahim,justin.ibrahim32@yahoo.com,(206) 555-0777,Belltown,98121,2024-08-12,2026-03-16,4,23.92,5.98,cappuccino,no,TikTok,
+Nora Brooks,nora.brooks51@gmail.com,(206) 555-0501,Greenwood,98118,2024-03-20,2026-08-02,131,1287.73,9.83,oat latte,yes,Google Search,allergic to hazelnut
+Elena Wallace,elena.wallace21@yahoo.com,(206) 555-0826,Capitol Hill,98103,2025-06-16,2026-08-05,20,153.6,7.68,cappuccino,no,Email newsletter,
+Laura Brooks,laura.brooks73@outlook.com,(206) 555-0300,Capitol Hill,98118,2026-06-13,2026-06-29,1,7.61,7.61,mocha,no,Walk-by,
+Jessica Torres,jessica.torres58@icloud.com,(206) 555-0624,Columbia City,98109,2025-05-06,2026-07-21,22,168.08,7.64,mocha,no,Walk-by,call before 9am at 206-555-4267
+Priya Ellis,priya.ellis68@yahoo.com,(206) 555-0628,Fremont,98102,2025-05-01,2026-07-29,78,674.7,8.65,mocha,yes,Email newsletter,prefers oat milk
+Mei Novak,mei.novak88@icloud.com,(206) 555-0385,Queen Anne,98103,2024-03-29,2026-08-03,80,838.4,10.48,cold brew,yes,Google Search,always orders for two
+Nathan Novak,nathan.novak65@icloud.com,(206) 555-0265,Columbia City,98109,2024-11-18,2026-01-16,14,89.32,6.38,americano,no,TikTok,prefers oat milk
+Sarah Novak,sarah.novak68@outlook.com,(206) 555-0423,Columbia City,98109,2024-06-10,2025-11-20,8,67.92,8.49,oat latte,no,Email newsletter,reach at sarah.novak@gmail.com for catering
+Rachel Chen,rachel.chen58@yahoo.com,(206) 555-0481,Capitol Hill,98107,2026-04-24,2026-07-01,1,5.45,5.45,seasonal special,no,Walk-by,
+Laura Chan,laura.chan54@outlook.com,(206) 555-0627,U-District,98121,2025-08-04,2026-07-15,38,238.64,6.28,cold brew,no,Instagram,always orders for two
+Daniel Delgado,daniel.delgado70@yahoo.com,(206) 555-0464,Queen Anne,98109,2025-04-25,2026-08-04,153,1175.04,7.68,cappuccino,yes,Email newsletter,asks about the seasonal menu
+Jonas Ibrahim,jonas.ibrahim59@outlook.com,(206) 555-0348,Fremont,98105,2025-05-10,2026-07-28,28,219.8,7.85,americano,yes,Walk-by,
+Tyler Nguyen,tyler.nguyen86@icloud.com,(206) 555-0183,U-District,98109,2025-10-23,2026-06-25,1,5.47,5.47,americano,yes,Walk-by,prefers oat milk
+Nicole Harper,nicole.harper17@gmail.com,(206) 555-0514,Ballard,98105,2025-12-31,2026-07-17,40,318.8,7.97,chai,yes,Instagram,
+Sarah Gupta,sarah.gupta59@yahoo.com,(206) 555-0341,West Seattle,98107,2026-06-29,2026-07-29,3,18.06,6.02,mocha,no,TikTok,always orders for two
+Brian Nguyen,brian.nguyen94@outlook.com,(206) 555-0361,Capitol Hill,98121,2026-07-24,2026-08-05,2,12.4,6.2,chai,no,Google Search,brings own cup
+Wei Jensen,wei.jensen27@yahoo.com,(206) 555-0360,West Seattle,98109,2026-01-28,2026-06-02,7,513.1,73.3,espresso,yes,Google Search,reach at wei.jensen@gmail.com for catering
+Eric Lam,eric.lam76@gmail.com,(206) 555-0191,Belltown,98102,2025-01-18,2026-07-29,36,198.72,5.52,matcha latte,yes,Google Search,allergic to hazelnut
+Aisha Brooks,aisha.brooks15@gmail.com,(206) 555-0544,Belltown,98121,2026-06-10,2026-07-13,1,6.45,6.45,americano,no,Google Search,allergic to hazelnut
+David Adeyemi,david.adeyemi75@icloud.com,(206) 555-0895,U-District,98105,2024-08-02,2026-08-01,71,619.83,8.73,cappuccino,yes,Email newsletter,reach at david.adeyemi@gmail.com for catering
+Daniel Novak,daniel.novak75@icloud.com,(206) 555-0328,Capitol Hill,98109,2025-06-09,2026-07-31,99,670.23,6.77,oat latte,yes,Google Search,brings own cup
+Grace Wallace,grace.wallace89@yahoo.com,(206) 555-0686,West Seattle,98116,2024-03-21,2026-08-08,50,541.5,10.83,seasonal special,yes,Instagram,always orders for two
+Kevin Hughes,kevin.hughes34@gmail.com,(206) 555-0435,Columbia City,98102,2025-04-29,2026-06-25,4,426.24,106.56,espresso,no,Word of mouth,
+Chloe Ellis,chloe.ellis57@outlook.com,(206) 555-0487,Ballard,98102,2026-06-21,2026-06-26,2,9.32,4.66,cold brew,no,Walk-by,always orders for two
+Carlos Silva,carlos.silva62@gmail.com,(206) 555-0301,Greenwood,98121,2025-07-15,2026-07-30,14,87.78,6.27,cold brew,no,Instagram,prefers oat milk
+Omar Lam,omar.lam93@gmail.com,(206) 555-0233,Capitol Hill,98118,2025-05-21,2026-07-25,7,759.15,108.45,drip coffee,yes,Instagram,always orders for two
+Mei Chen,mei.chen48@gmail.com,(206) 555-0857,Belltown,98118,2024-07-09,2026-04-05,18,102.42,5.69,seasonal special,yes,Word of mouth,call before 9am at 206-555-5748
+Amanda Kim,amanda.kim6@yahoo.com,(206) 555-0378,U-District,98105,2025-11-27,2026-06-30,3,14.43,4.81,matcha latte,yes,TikTok,brings own cup
+Megan Chan,megan.chan52@icloud.com,(206) 555-0377,Belltown,98105,2025-08-27,2025-12-22,12,82.2,6.85,oat latte,yes,Word of mouth,allergic to hazelnut
+Ashley Harper,ashley.harper17@outlook.com,(206) 555-0895,West Seattle,98102,2024-10-12,2025-08-20,15,111.75,7.45,matcha latte,no,Email newsletter,
+Sofia Martinez,sofia.martinez14@gmail.com,(206) 555-0929,Fremont,98121,2026-01-10,2026-06-02,6,709.5,118.25,chai,yes,TikTok,allergic to hazelnut
+Sarah Gupta,sarah.gupta28@gmail.com,(206) 555-0242,Wallingford,98109,2025-02-22,2026-07-21,35,271.95,7.77,matcha latte,yes,TikTok,prefers oat milk
+Emily Jensen,emily.jensen52@outlook.com,(206) 555-0939,Columbia City,98116,2026-01-05,2026-07-13,36,221.04,6.14,espresso,yes,Instagram,call before 9am at 206-555-7918
+Eric Rodriguez,eric.rodriguez78@gmail.com,(206) 555-0846,Ballard,98118,2024-10-27,2026-08-02,118,926.3,7.85,drip coffee,yes,Google Search,call before 9am at 206-555-8353
+Wei Johnson,wei.johnson8@outlook.com,(206) 555-0196,Capitol Hill,98107,2024-04-13,2026-08-08,95,895.85,9.43,chai,yes,Google Search,brings own cup
+Marcus Rodriguez,marcus.rodriguez31@outlook.com,(206) 555-0928,Queen Anne,98116,2025-06-06,2025-08-12,14,95.76,6.84,americano,no,Instagram,call before 9am at 206-555-2219
+Nora Okafor,nora.okafor13@icloud.com,(206) 555-0595,Columbia City,98103,2026-07-02,2026-07-07,1,5.52,5.52,mocha,no,Google Search,allergic to hazelnut
+Ashley Hughes,ashley.hughes63@yahoo.com,(206) 555-0119,Capitol Hill,98116,2024-11-26,2026-03-17,17,111.86,6.58,cold brew,no,Yelp,prefers oat milk
+Elena Kim,elena.kim70@icloud.com,(206) 555-0774,Columbia City,98105,2026-01-17,2026-07-23,28,200.48,7.16,cappuccino,no,Walk-by,reach at elena.kim@gmail.com for catering
+Ivan Kowalski,ivan.kowalski50@yahoo.com,(206) 555-0209,Belltown,98116,2026-03-07,2026-08-03,3,27.69,9.23,drip coffee,no,Google Search,reach at ivan.kowalski@gmail.com for catering
+Daniel Ferreira,daniel.ferreira93@icloud.com,(206) 555-0833,Fremont,98105,2025-04-10,2026-08-02,28,237.72,8.49,seasonal special,no,Instagram,always orders for two
+Daniel Anderson,daniel.anderson88@icloud.com,(206) 555-0848,Wallingford,98118,2025-08-12,2026-08-08,105,1012.2,9.64,espresso,yes,Word of mouth,brings own cup
+Ashley Hughes,ashley.hughes41@gmail.com,(206) 555-0229,West Seattle,98118,2026-07-18,2026-07-26,2,16.54,8.27,cold brew,no,Yelp,reach at ashley.hughes@gmail.com for catering
+Chloe Lam,chloe.lam25@yahoo.com,(206) 555-0673,Capitol Hill,98107,2026-01-17,2026-07-13,29,208.51,7.19,mocha,yes,Instagram,prefers oat milk
+Kevin Wallace,kevin.wallace78@outlook.com,(206) 555-0190,Ballard,98105,2025-04-22,2026-08-06,40,230.0,5.75,cold brew,yes,Walk-by,
+Amanda Lam,amanda.lam75@outlook.com,(206) 555-0172,Belltown,98105,2025-08-24,2026-02-13,14,91.42,6.53,cappuccino,no,Instagram,asks about the seasonal menu
