@@ -3,7 +3,7 @@ import { buildPrompt, getSystemPrompt, type GenerateInput } from "@/lib/prompts"
 import { getOrCreateSession, saveCampaign, extractSessionMeta } from "@/lib/supabase";
 import { getUser } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { generateJSON, getDefaultProvider } from "@/lib/ai-provider";
+import { generateJSON, getDefaultProvider, isQuotaOrRateError } from "@/lib/ai-provider";
 
 export async function POST(req: Request) {
   try {
@@ -73,8 +73,14 @@ export async function POST(req: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Generate error:", message);
+    // The provider's own message is kept in the server log only. It has carried
+    // account identifiers and quota details, which do not belong in a response
+    // any visitor can read. `retryable` tells the client what it needs to know.
     return Response.json(
-      { error: "Something went wrong generating your campaign. Please try again.", debug: message },
+      {
+        error: "Something went wrong generating your campaign. Please try again.",
+        retryable: isQuotaOrRateError(message),
+      },
       { status: 500 }
     );
   }

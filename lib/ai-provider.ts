@@ -80,8 +80,9 @@ function reserveGeminiBudgetSlot(): { allowed: true } | { allowed: false; reason
   return { allowed: true };
 }
 
-function shouldFallbackGeminiError(error: unknown): boolean {
-  if (GEMINI_BUDGET_BEHAVIOR !== "fallback") return false;
+export function isQuotaOrRateError(error: unknown): boolean {
+  const status = (error as { status?: number })?.status;
+  if (status === 429) return true;
   const message = error instanceof Error ? error.message : String(error);
   const text = message.toLowerCase();
   return (
@@ -90,6 +91,11 @@ function shouldFallbackGeminiError(error: unknown): boolean {
     text.includes("resource_exhausted") ||
     text.includes("rate limit")
   );
+}
+
+function shouldFallbackGeminiError(error: unknown): boolean {
+  if (GEMINI_BUDGET_BEHAVIOR !== "fallback") return false;
+  return isQuotaOrRateError(error);
 }
 
 function normalizeJsonText(raw: string): string {
@@ -130,11 +136,17 @@ function resolveProvider(provider?: Provider): Provider {
   return "groq";
 }
 
+/**
+ * `allowFallback` exists to keep the two providers from bouncing a failed request
+ * back and forth. Whichever one is entered first may hand off once; the one it
+ * hands off to must fail outright.
+ */
 export async function generateWithGroq(
   system: string,
   user: string,
   options: LLMOptions = {},
-  model: string = DEFAULT_GROQ_MODEL
+  model: string = DEFAULT_GROQ_MODEL,
+  allowFallback: boolean = true
 ): Promise<LLMResponse> {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
   const start = Date.now();
@@ -168,7 +180,16 @@ export async function generateWithGroq(
       const invalidJson = options.jsonMode && (
         error instanceof SyntaxError || (providerError.status === 400 && code === "json_validate_failed")
       );
-      if (!invalidJson) throw error;
+      if (!invalidJson) {
+        // A daily or per-minute cap on the default provider used to take the whole
+        // platform down with it, because only Gemini knew how to hand off. Both
+        // directions now do.
+        if (allowFallback && isQuotaOrRateError(error) && process.env.GEMINI_API_KEY) {
+          console.warn("[ai-provider] Groq quota/rate error; falling back to Gemini");
+          return generateWithGemini(system, user, options, DEFAULT_GEMINI_FLASH_MODEL, false);
+        }
+        throw error;
+      }
       if (attempt === 0) {
         console.warn("[ai-provider] Invalid JSON output; retrying once", { reason: error instanceof SyntaxError ? error.message : code });
         continue;
@@ -184,13 +205,14 @@ export async function generateWithGemini(
   system: string,
   user: string,
   options: LLMOptions = {},
-  model: string = DEFAULT_GEMINI_FLASH_MODEL
+  model: string = DEFAULT_GEMINI_FLASH_MODEL,
+  allowFallback: boolean = true
 ): Promise<LLMResponse> {
   const budget = reserveGeminiBudgetSlot();
   if (!budget.allowed) {
-    if (GEMINI_BUDGET_BEHAVIOR === "fallback") {
+    if (allowFallback && GEMINI_BUDGET_BEHAVIOR === "fallback") {
       console.warn(`[ai-provider] ${budget.reason}; falling back to Groq`);
-      return generateWithGroq(system, user, options);
+      return generateWithGroq(system, user, options, DEFAULT_GROQ_MODEL, false);
     }
     throw new Error(`[ai-provider] ${budget.reason}`);
   }
@@ -219,9 +241,9 @@ export async function generateWithGemini(
       latencyMs: Date.now() - start,
     };
   } catch (error) {
-    if (shouldFallbackGeminiError(error)) {
+    if (allowFallback && shouldFallbackGeminiError(error)) {
       console.warn("[ai-provider] Gemini quota/rate error; falling back to Groq");
-      return generateWithGroq(system, user, options);
+      return generateWithGroq(system, user, options, DEFAULT_GROQ_MODEL, false);
     }
     throw error;
   }

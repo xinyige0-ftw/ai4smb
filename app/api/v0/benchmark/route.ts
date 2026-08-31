@@ -1,6 +1,6 @@
 import { BUSINESS_TYPES } from "@/lib/prompts";
 import { buildBenchmarkPrompt, getInsightSystemPrompt, type BenchmarkInput } from "@/lib/insight-prompts";
-import { generateJSON, getDefaultProvider } from "@/lib/ai-provider";
+import { generateJSON, getDefaultProvider, isQuotaOrRateError } from "@/lib/ai-provider";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { stripUnfoundedSizes } from "@/lib/segment-prompts";
 
@@ -85,9 +85,17 @@ export async function GET(req: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("api/v0/benchmark error:", message);
-    return jsonResponse(
-      { error: "Something went wrong generating benchmark segments. Please try again." },
-      500
-    );
+    // 503 rather than 500 when the upstream model is out of quota: the request was
+    // well formed and will succeed later, and a caller building against this
+    // endpoint needs to be able to tell those two cases apart.
+    return isQuotaOrRateError(err)
+      ? jsonResponse(
+          { error: "The inference service is temporarily unavailable. Please retry later.", retryable: true },
+          503
+        )
+      : jsonResponse(
+          { error: "Something went wrong generating benchmark segments. Please try again." },
+          500
+        );
   }
 }
