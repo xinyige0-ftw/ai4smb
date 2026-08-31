@@ -218,35 +218,48 @@ export async function generateWithGemini(
   }
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  const genModel = genAI.getGenerativeModel({
-    model,
-    systemInstruction: system,
-    generationConfig: {
-      temperature: options.temperature ?? 0.7,
-      maxOutputTokens: options.maxTokens ?? 3000,
-      ...(options.jsonMode ? { responseMimeType: "application/json" } : {}),
-    },
-  });
-
   const start = Date.now();
-  try {
-    const result = await genModel.generateContent(user);
-    const text = result.response.text();
-    const normalizedText = options.jsonMode ? normalizeJsonText(text) : text;
 
-    return {
-      text: normalizedText,
-      provider: "gemini",
+  // Same two-attempt shape as the Groq path. A long answer truncated at the token
+  // ceiling comes back as unparseable JSON, which used to surface as a hard error
+  // on this route while the other one quietly retried and succeeded.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const genModel = genAI.getGenerativeModel({
       model,
-      latencyMs: Date.now() - start,
-    };
-  } catch (error) {
-    if (allowFallback && shouldFallbackGeminiError(error)) {
-      console.warn("[ai-provider] Gemini quota/rate error; falling back to Groq");
-      return generateWithGroq(system, user, options, DEFAULT_GROQ_MODEL, false);
+      systemInstruction: system,
+      generationConfig: {
+        temperature: attempt ? 0.2 : (options.temperature ?? 0.7),
+        maxOutputTokens: attempt
+          ? Math.min(8000, Math.max(options.maxTokens ?? 3000, 6000))
+          : (options.maxTokens ?? 3000),
+        ...(options.jsonMode ? { responseMimeType: "application/json" } : {}),
+      },
+    });
+
+    try {
+      const result = await genModel.generateContent(user);
+      const text = result.response.text();
+      const normalizedText = options.jsonMode ? normalizeJsonText(text) : text;
+      if (options.jsonMode) {
+        const parsed = JSON.parse(normalizedText);
+        options.validateJson?.(parsed);
+      }
+      return { text: normalizedText, provider: "gemini", model, latencyMs: Date.now() - start };
+    } catch (error) {
+      if (allowFallback && shouldFallbackGeminiError(error)) {
+        console.warn("[ai-provider] Gemini quota/rate error; falling back to Groq");
+        return generateWithGroq(system, user, options, DEFAULT_GROQ_MODEL, false);
+      }
+      const invalidJson = options.jsonMode && error instanceof SyntaxError;
+      if (invalidJson && attempt === 0) {
+        console.warn("[ai-provider] Gemini returned invalid JSON; retrying once with a higher ceiling");
+        continue;
+      }
+      if (invalidJson) throw new Error("The model did not return complete JSON after one retry. Please try again.");
+      throw error;
     }
-    throw error;
   }
+  throw new Error("No model response");
 }
 
 export function getDefaultProvider(): Provider {

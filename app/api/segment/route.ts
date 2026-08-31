@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     const response = await generateJSON(
       systemPrompt,
       prompt,
-      { temperature: 0.7, maxTokens: 3000 },
+      { temperature: 0.7, maxTokens: 6000 },
       getDefaultProvider()
     );
     const text = response.text || "{}";

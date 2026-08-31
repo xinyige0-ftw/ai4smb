@@ -66,7 +66,7 @@ export async function GET(req: Request) {
     const response = await generateJSON(
       systemPrompt,
       prompt,
-      { temperature: 0.7, maxTokens: 3000 },
+      { temperature: 0.7, maxTokens: 6000 },
       getDefaultProvider()
     );
     // No customer file underlies a benchmark response, so member counts cannot be
