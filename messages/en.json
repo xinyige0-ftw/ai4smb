@@ -269,7 +269,9 @@
     "codePrompt": "Opened the email on another device? Enter the 6-digit code from it.",
     "verifyCode": "Sign in",
     "verifying": "Checking...",
-    "codeInvalid": "That code did not work. Check it again, or request a new email."
+    "codeInvalid": "That code did not work. Check it again, or request a new email.",
+    "resendIn": "Resend in {seconds}s",
+    "searchSender": "Still nothing? Search your mailbox for <code>{sender}</code>."
   },
   "channel": {
     "whyThis": "Why this channel?",

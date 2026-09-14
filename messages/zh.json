@@ -269,7 +269,9 @@
     "codePrompt": "在另一台设备上打开的邮件？填邮件里的 6 位验证码。",
     "verifyCode": "登录",
     "verifying": "验证中...",
-    "codeInvalid": "验证码不对。请再核对一下，或者重新发一封邮件。"
+    "codeInvalid": "验证码不对。请再核对一下，或者重新发一封邮件。",
+    "resendIn": "{seconds} 秒后可重新发送",
+    "searchSender": "还是没有？在邮箱里搜索 <code>{sender}</code>。"
   },
   "channel": {
     "whyThis": "为什么选这个渠道？",

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { createBrowserClient } from "@supabase/ssr";
+
+/** Must match the "Sender email" configured in Supabase Auth SMTP settings. */
+const SENDER_ADDRESS = "no-reply@mail.ai4smbhub.com";
 
 interface SignInModalProps {
   onClose: () => void;
@@ -16,11 +19,22 @@ export default function SignInModal({ onClose }: SignInModalProps) {
   const [error, setError] = useState("");
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  // Supabase refuses a second link for the same address inside a 60 second
+  // window and answers 429. A person who sees no email, clicks send again and
+  // is told "too many emails" reads that as the product being broken. Counting
+  // down in the open is the difference between a rule and a fault.
+  const [cooldown, setCooldown] = useState(0);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setTimeout(() => setCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
 
   function getAnonId(): string {
     return (typeof window !== "undefined" && window.localStorage.getItem("ai4smb_anon_id")) || "";
@@ -59,6 +73,7 @@ export default function SignInModal({ onClose }: SignInModalProps) {
       return;
     }
     setSent(true);
+    setCooldown(60);
   }
 
   /**
@@ -161,10 +176,14 @@ export default function SignInModal({ onClose }: SignInModalProps) {
             />
             <button
               onClick={handleMagicLink}
-              disabled={!email.trim() || loading}
+              disabled={!email.trim() || loading || cooldown > 0}
               className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
             >
-              {loading ? t("sending") : t("sendMagicLink")}
+              {loading
+                ? t("sending")
+                : cooldown > 0
+                  ? t("resendIn", { seconds: cooldown })
+                  : t("sendMagicLink")}
             </button>
 
             {error && (
@@ -185,6 +204,16 @@ export default function SignInModal({ onClose }: SignInModalProps) {
             </p>
             <p className="mt-3 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
               {t("checkSpam")}
+            </p>
+            {/* Naming the sender is the one instruction that works when the mail
+                has been filed somewhere the person would not think to look. */}
+            <p className="mt-2 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+              {t.rich("searchSender", {
+                sender: SENDER_ADDRESS,
+                code: (chunks) => (
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-[11px] dark:bg-zinc-800">{chunks}</code>
+                ),
+              })}
             </p>
 
             {/* Code entry, for an email opened on a different device. */}
