@@ -38,10 +38,14 @@ export default function SignInModal({ onClose }: SignInModalProps) {
     return (typeof window !== "undefined" && window.localStorage.getItem("ai4smb_anon_id")) || "";
   }
 
+  // Signing in returns the person to the page they were on, the home page
+  // included. Sending them to /history instead was meant to prove the sign-in
+  // worked, by showing them their own saved work, but it moves someone who
+  // asked for nothing of the kind. The header already switches to the signed-in
+  // state, which is the signal, and it costs no navigation.
   function getRedirectUrl(): string {
     const anonId = getAnonId();
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : "/history";
-    const nextPath = currentPath === "/" ? "/history" : currentPath;
+    const nextPath = typeof window !== "undefined" ? window.location.pathname : "/";
     return `${window.location.origin}/auth/callback?anon_id=${encodeURIComponent(anonId)}&next=${encodeURIComponent(nextPath)}`;
   }
 
