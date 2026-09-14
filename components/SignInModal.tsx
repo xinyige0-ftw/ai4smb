@@ -17,8 +17,6 @@ export default function SignInModal({ onClose }: SignInModalProps) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [code, setCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
   // Supabase refuses a second link for the same address inside a 60 second
   // window and answers 429. A person who sees no email, clicks send again and
   // is told "too many emails" reads that as the product being broken. Counting
@@ -74,51 +72,6 @@ export default function SignInModal({ onClose }: SignInModalProps) {
     }
     setSent(true);
     setCooldown(60);
-  }
-
-  /**
-   * The six-digit code is the way in when the email is opened somewhere other
-   * than the browser that asked for it. The magic link cannot cover that case:
-   * it uses PKCE, and the code_verifier lives in a cookie belonging to the
-   * requesting browser, so a link tapped on a phone after being requested on a
-   * laptop can never complete the exchange. A code carries no verifier, so it
-   * works from any device.
-   */
-  async function handleVerifyCode() {
-    const token = code.replace(/\D/g, "");
-    if (token.length < 6) return;
-    setVerifying(true);
-    setError("");
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token,
-      type: "email",
-    });
-    setVerifying(false);
-
-    if (error || !data.user) {
-      setError(error?.message ?? t("codeInvalid"));
-      return;
-    }
-
-    // Best effort: the sign-in itself has already succeeded, so a failed merge
-    // must not block the person from getting in.
-    const anonId = getAnonId();
-    if (anonId) {
-      try {
-        await fetch("/api/auth/merge", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ anonId }),
-        });
-      } catch {
-        // ignore
-      }
-    }
-
-    const currentPath = window.location.pathname;
-    window.location.assign(currentPath === "/" ? "/history" : currentPath);
   }
 
   return (
@@ -215,40 +168,6 @@ export default function SignInModal({ onClose }: SignInModalProps) {
                 ),
               })}
             </p>
-
-            {/* Code entry, for an email opened on a different device. */}
-            <div className="mt-6 border-t border-zinc-100 pt-5 text-left dark:border-zinc-800">
-              <label
-                htmlFor="signin-code"
-                className="block text-xs font-medium text-zinc-600 dark:text-zinc-300"
-              >
-                {t("codePrompt")}
-              </label>
-              <div className="mt-2 flex gap-2">
-                <input
-                  id="signin-code"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="000000"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  onKeyDown={(e) => e.key === "Enter" && handleVerifyCode()}
-                  className="w-32 rounded-xl border border-zinc-300 px-4 py-2.5 text-center text-base tracking-[0.3em] focus:border-blue-400 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-                />
-                <button
-                  onClick={handleVerifyCode}
-                  disabled={code.length < 6 || verifying}
-                  className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-40"
-                >
-                  {verifying ? t("verifying") : t("verifyCode")}
-                </button>
-              </div>
-              {error && (
-                <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
-              )}
-            </div>
 
             <button
               onClick={onClose}
