@@ -16,8 +16,13 @@ export default function AuthButton() {
   );
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    // getSession() reads the session out of the cookie; getUser() is a network
+    // call to /auth/v1/user, and that endpoint shares one IP-scoped bucket
+    // (30 requests / 5 minutes) with /auth/v1/otp. Spending it on a UI read
+    // means a person who has clicked around the site for a few minutes gets a
+    // 429 the moment they ask for a sign-in link. Nothing here is a security
+    // decision -- it fills in a name and an avatar -- so the cookie is enough.
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
 
     // Listen for auth changes (sign in / sign out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

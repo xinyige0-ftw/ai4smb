@@ -265,7 +265,11 @@
     "checkSpam": "Don't see it? Check your spam or junk folder. Hotmail and Outlook may take a few minutes.",
     "gotIt": "Got it, close this",
     "skipForNow": "Continue without signing in",
-    "rateLimited": "Too many sign-in emails have been sent recently. Please wait a few minutes and try again, or sign in with Google."
+    "rateLimited": "Too many sign-in emails have been sent recently. Please wait a few minutes and try again, or sign in with Google.",
+    "codePrompt": "Opened the email on another device? Enter the 6-digit code from it.",
+    "verifyCode": "Sign in",
+    "verifying": "Checking...",
+    "codeInvalid": "That code did not work. Check it again, or request a new email."
   },
   "channel": {
     "whyThis": "Why this channel?",
