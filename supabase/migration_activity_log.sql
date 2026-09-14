@@ -1,4 +1,4 @@
-tal -- Migration: unified activity tracking
+-- Migration: unified activity tracking
 -- Adds chats table, activity_log view, and counters for all action types
 -- Run in Supabase Dashboard → SQL Editor
 
